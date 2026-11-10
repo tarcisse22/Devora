@@ -1,3 +1,5 @@
+import type { TracerStep } from "./tracer";
+
 /**
  * App-side client for the sandboxed code runner (public/sandbox/runner.html).
  *
@@ -9,20 +11,12 @@
 export type RunLanguage = "javascript" | "python" | "c" | "cpp";
 export type OutputStream = "stdout" | "stderr" | "warn" | "info" | "system";
 
-export type TraceStep = {
-  line: number;
-  vars: Record<string, string>;
-  stack: string[];
-  /** How many console lines had been printed when this step ran. */
-  outputLength: number;
-};
-
 export type RunResult = {
   ok: boolean;
   /** Runner-level failure (timeout, stop, runtime load error). */
   error?: string;
   durationMs?: number;
-  steps?: TraceStep[];
+  steps?: TracerStep[];
 };
 
 type RunOptions = {
@@ -36,7 +30,7 @@ type RunOptions = {
   onStarted?: () => void;
 };
 
-type Pending = RunOptions & { resolve: (r: RunResult) => void; steps?: TraceStep[] };
+type Pending = RunOptions & { resolve: (r: RunResult) => void; steps?: TracerStep[] };
 
 const RUNNER_URL = "/sandbox/runner.html";
 

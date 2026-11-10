@@ -117,7 +117,7 @@ export const features: Record<FeatureId, Feature> = {
     name: "Code Tracer",
     href: "/code-tracer",
     icon: Footprints,
-    status: "planned",
+    status: "available",
     summary: "Step through JavaScript line by line and inspect state.",
     description:
       "See how a program really runs: the current line, every variable, the call stack and the output, one step at a time.",

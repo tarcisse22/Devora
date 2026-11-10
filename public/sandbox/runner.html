@@ -95,20 +95,39 @@ function reportError(err) {
 }
 self.addEventListener("unhandledrejection", (e) => { e.preventDefault(); reportError(e.reason); });
 
-// Code-tracer hooks (only used when the app sends instrumented code).
-const trace = { steps: [], stack: [], limit: 2000 };
+// Code-tracer hooks (only used when the app sends instrumented code; see
+// lib/execution/tracer.ts). Each frame keeps the getter from its latest step;
+// getters are closures, so they always read the variables' current values.
+const TDZ = Symbol("tdz");
+const trace = { steps: [], frames: [{ name: "global", getter: null }], limit: 3000 };
+function snapshot() {
+  return trace.frames.map((f) => {
+    let raw = {};
+    try { raw = f.getter ? f.getter() : {}; } catch (_) {}
+    const vars = {};
+    for (const k of Object.keys(raw)) vars[k] = raw[k] === TDZ ? "<uninitialized>" : fmt(raw[k], 1, new Set());
+    return { name: f.name, vars };
+  });
+}
+function record(step) {
+  if (trace.steps.length >= trace.limit) throw new Error("Step limit reached (" + trace.limit + " steps) — is there an infinite loop?");
+  trace.steps.push(step);
+}
 self.__devora = {
-  step(line, scopeGetter) {
-    if (trace.steps.length >= trace.limit) throw new Error("Step limit reached (" + trace.limit + " steps). Is there an infinite loop?");
-    let vars = {};
-    try { vars = scopeGetter(); } catch (_) {}
-    const shown = {};
-    for (const k of Object.keys(vars)) shown[k] = vars[k] === self.__devora.TDZ ? "<uninitialized>" : fmt(vars[k], 1, new Set());
-    trace.steps.push({ line, vars: shown, stack: trace.stack.map((f) => f.name), outputLength: outputCount });
+  TDZ,
+  step(line, getter) {
+    trace.frames[trace.frames.length - 1].getter = getter;
+    record({ line, frames: snapshot(), outputLength: outputCount });
   },
-  enter(name) { trace.stack.push({ name }); if (trace.stack.length > 200) throw new RangeError("Maximum call depth (200) exceeded"); },
-  exit() { trace.stack.pop(); },
-  TDZ: Symbol("tdz"),
+  enter(name) {
+    if (trace.frames.length > 200) throw new RangeError("Maximum call depth (200) exceeded");
+    trace.frames.push({ name, getter: null });
+  },
+  exit() { trace.frames.pop(); },
+  ret(value, line) {
+    record({ line, frames: snapshot(), outputLength: outputCount, returned: fmt(value, 1, new Set()) });
+    return value;
+  },
 };
 let outputCount = 0;
 const _log = console.log;

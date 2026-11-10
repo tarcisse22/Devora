@@ -1,5 +1,6 @@
 import { featureList, statusLabel, type FeatureId, type FeatureStatus } from "./features";
-import { dataStructureCatalog, learnSubjects, projectCatalog } from "./curriculum";
+import { learnSubjects, projectCatalog } from "./curriculum";
+import { dataStructures } from "./data-structures/catalog";
 import { algorithms, categoryLabel } from "./algorithms/catalog";
 
 export type SearchKind = "Page" | "Tool" | "Subject" | "Algorithm" | "Data structure" | "Project";
@@ -52,14 +53,15 @@ export const searchIndex: SearchEntry[] = [
     description: `${categoryLabel[a.category]} · ${a.summary}`,
     keywords: [a.category, a.complexity.average],
   })),
-  ...dataStructureCatalog.map<SearchEntry>((name) => ({
-    id: `ds-${name}`,
-    title: name,
-    href: "/visualize#data-structures",
+  ...dataStructures.map<SearchEntry>((d) => ({
+    id: `ds-${d.slug}`,
+    title: d.name,
+    href: `/visualize/data-structures/${d.slug}`,
     kind: "Data structure",
     feature: "visualize",
-    status: "planned",
-    description: "Data structure visualization",
+    status: "available",
+    description: d.summary,
+    keywords: d.operations.map((o) => o.name),
   })),
   ...projectCatalog.map<SearchEntry>((p) => ({
     id: `project-${p.name}`,

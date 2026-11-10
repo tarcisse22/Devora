@@ -100,10 +100,10 @@ export const features: Record<FeatureId, Feature> = {
     name: "Visualize",
     href: "/visualize",
     icon: Network,
-    status: "preview",
-    summary: "Watch 10 algorithms execute step by step; data structures are next.",
+    status: "available",
+    summary: "10 algorithms and 9 data structures you can run, step through and modify.",
     description:
-      "Interactive visualizations driven by real algorithm implementations, so every frame reflects actual execution. Ten sorting, searching and graph algorithms are live; data structure visualizers are in development.",
+      "Interactive visualizations driven by real algorithm implementations, so every frame reflects actual execution. Ten sorting, searching and graph algorithms, plus nine data structures you can operate on.",
     scope: [
       "Sorting, searching and graph algorithms, each with its own visualization",
       "Play, pause, step forward / back, reset and speed control",

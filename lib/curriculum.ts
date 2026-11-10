@@ -15,18 +15,6 @@ export const learnSubjects = [
   { name: "Software Engineering", topics: ["Version control", "Testing", "Architecture", "Delivery"] },
 ] as const;
 
-export const dataStructureCatalog = [
-  "Arrays",
-  "Linked Lists",
-  "Stacks",
-  "Queues",
-  "Binary Trees",
-  "Binary Search Trees",
-  "Heaps",
-  "Hash Tables",
-  "Graphs",
-] as const;
-
 export const projectCatalog = [
   { name: "Personal Portfolio", level: "Beginner" },
   { name: "Task Manager", level: "Beginner" },

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { algorithms, categoryLabel, type AlgorithmCategory } from "@/lib/algorithms/catalog";
-import { dataStructureCatalog } from "@/lib/curriculum";
+import { dataStructures } from "@/lib/data-structures/catalog";
 import { features } from "@/lib/features";
 import { PageShell, SectionHeading } from "@/components/layout/page-shell";
 import { FeatureHeader } from "@/components/layout/feature-header";
@@ -59,12 +59,21 @@ export default function VisualizePage() {
           id="data-structures"
           title="Data structures"
           description="Operate on each structure — insert, delete, push, pop, enqueue — and watch it change, with an explanation of every step."
-          aside={<StatusBadge status="planned" />}
+          aside={<StatusBadge status="available" />}
         />
-        <ul className="mt-8 flex flex-wrap gap-2.5">
-          {dataStructureCatalog.map((ds) => (
-            <li key={ds} className="rounded-full border border-line-strong bg-white/[0.02] px-4 py-2 text-[14px] text-fg/85">
-              {ds}
+        <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {dataStructures.map((ds) => (
+            <li key={ds.slug}>
+              <Link
+                href={`/visualize/data-structures/${ds.slug}`}
+                className="group flex h-full items-start justify-between gap-3 rounded-[var(--radius-lg)] border border-line bg-surface/50 px-5 py-4 transition-colors hover:border-line-strong hover:bg-surface"
+              >
+                <span>
+                  <span className="block text-[15px] font-medium text-fg">{ds.name}</span>
+                  <span className="mt-0.5 block text-[13px] leading-relaxed text-fg-muted">{ds.summary}</span>
+                </span>
+                <ArrowUpRight className="mt-0.5 size-4 shrink-0 text-fg-subtle transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent-200" aria-hidden />
+              </Link>
             </li>
           ))}
         </ul>

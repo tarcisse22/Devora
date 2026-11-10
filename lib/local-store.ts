@@ -8,11 +8,12 @@ import { useSyncExternalStore } from "react";
  * unavailable (private mode, blocked site data), in which case values are
  * simply not kept.
  */
-const EVENT = "devora:local-store";
+export const LOCAL_STORE_EVENT = "devora:local-store";
+const EVENT = LOCAL_STORE_EVENT;
 const cache = new Map<string, string[]>();
 const EMPTY: string[] = [];
 
-function read(key: string): string[] {
+export function readLocalList(key: string): string[] {
   if (cache.has(key)) return cache.get(key)!;
   let value: string[] = [];
   try {
@@ -51,16 +52,43 @@ function subscribe(onChange: () => void) {
 export function useLocalList(key: string): string[] {
   return useSyncExternalStore(
     subscribe,
-    () => read(key),
+    () => readLocalList(key),
     () => EMPTY,
   );
 }
 
 export function toggleInLocalList(key: string, value: string) {
-  const current = read(key);
+  const current = readLocalList(key);
   write(key, current.includes(value) ? current.filter((v) => v !== value) : [...current, value]);
 }
 
 export function clearLocalList(key: string) {
   write(key, []);
+}
+
+/** Replace a list (no event if unchanged). */
+export function setLocalList(key: string, values: string[]) {
+  const current = readLocalList(key);
+  if (current.length === values.length && current.every((v, i) => v === values[i])) return;
+  write(key, values);
+}
+
+export function addToLocalList(key: string, value: string) {
+  const current = readLocalList(key);
+  if (!current.includes(value)) write(key, [...current, value]);
+}
+
+/** All stored keys that start with a prefix. */
+export function localKeys(prefix: string): string[] {
+  const keys: string[] = [];
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      if (k?.startsWith(prefix)) keys.push(k);
+    }
+  } catch {
+    /* unavailable */
+  }
+  for (const k of cache.keys()) if (k.startsWith(prefix) && !keys.includes(k)) keys.push(k);
+  return keys;
 }

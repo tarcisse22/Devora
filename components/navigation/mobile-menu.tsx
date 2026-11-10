@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight, Menu, Search, X } from "lucide-react";
 import { mainNav } from "@/lib/site";
 import { cn } from "@/lib/utils";
-import { ButtonLink } from "@/components/ui/button";
+import { MobileAccountLinks } from "@/components/auth/user-menu";
 import { useSearch } from "@/components/search/search-provider";
 import { isActivePath } from "./nav-link";
 
@@ -100,14 +100,7 @@ export function MobileMenu() {
                       );
                     })}
                   </ul>
-                  <div className="mt-auto grid grid-cols-2 gap-3 pt-8">
-                    <ButtonLink href="/sign-in" onClick={close} variant="secondary" size="lg">
-                      Sign In
-                    </ButtonLink>
-                    <ButtonLink href="/get-started" onClick={close} variant="primary" size="lg">
-                      Get Started
-                    </ButtonLink>
-                  </div>
+                  <MobileAccountLinks onNavigate={close} />
                 </motion.nav>
               </motion.div>
             )}

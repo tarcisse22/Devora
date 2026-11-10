@@ -4,6 +4,7 @@ import { siteConfig } from "@/lib/site";
 import { Navbar } from "@/components/navigation/navbar";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SearchProvider } from "@/components/search/search-provider";
+import { AuthProvider } from "@/components/auth/auth-provider";
 import "@/styles/globals.css";
 
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans", display: "swap" });
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="flex min-h-dvh flex-col">
+        <AuthProvider>
         <SearchProvider>
           <a
             href="#main"
@@ -39,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <SiteFooter />
         </SearchProvider>
+        </AuthProvider>
       </body>
     </html>
   );

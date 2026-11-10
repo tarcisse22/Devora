@@ -1,60 +1,23 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { addToLocalList, useLocalList } from "@/lib/local-store";
 import type { ChallengeLanguage } from "./challenges";
 
 /**
- * Practice progress and drafts, stored in this browser only (localStorage).
- * There are no accounts yet, so nothing is sent anywhere. All access is
- * wrapped in try/catch: storage can be unavailable (private mode, blocked).
+ * Practice progress and drafts. Both live in this browser (localStorage);
+ * solved challenges are also synced to the account when signed in (see
+ * lib/firebase/progress-sync.ts). Drafts never leave the browser.
  */
 
-const SOLVED_KEY = "devora:practice:solved";
-const EVENT = "devora:practice-progress";
+export const SOLVED_KEY = "devora:practice:solved";
 
-function readSolved(): string[] {
-  try {
-    const raw = window.localStorage.getItem(SOLVED_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.filter((s) => typeof s === "string") : [];
-  } catch {
-    return [];
-  }
-}
-
-let cache: string[] | null = null;
-const snapshot = () => (cache ??= readSolved());
-
-function subscribe(onChange: () => void) {
-  const handler = () => {
-    cache = null;
-    onChange();
-  };
-  window.addEventListener("storage", handler);
-  window.addEventListener(EVENT, handler);
-  return () => {
-    window.removeEventListener("storage", handler);
-    window.removeEventListener(EVENT, handler);
-  };
-}
-
-const EMPTY: string[] = [];
-
-/** Slugs of challenges solved in this browser. Empty during server render. */
+/** Slugs of challenges solved (in this browser, and in your account when signed in). */
 export function useSolved(): string[] {
-  return useSyncExternalStore(subscribe, snapshot, () => EMPTY);
+  return useLocalList(SOLVED_KEY);
 }
 
 export function markSolved(slug: string) {
-  try {
-    const solved = new Set(readSolved());
-    solved.add(slug);
-    window.localStorage.setItem(SOLVED_KEY, JSON.stringify([...solved]));
-  } catch {
-    /* storage unavailable — progress simply isn't kept */
-  }
-  cache = null;
-  window.dispatchEvent(new Event(EVENT));
+  addToLocalList(SOLVED_KEY, slug);
 }
 
 const draftKey = (slug: string, lang: ChallengeLanguage) => `devora:practice:draft:${slug}:${lang}`;

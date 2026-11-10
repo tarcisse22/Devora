@@ -5,10 +5,10 @@ import { mainNav } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/ui/logo";
-import { ButtonLink } from "@/components/ui/button";
 import { NavLink } from "./nav-link";
 import { MobileMenu } from "./mobile-menu";
 import { SearchButton } from "./search-button";
+import { UserMenu } from "@/components/auth/user-menu";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -44,12 +44,7 @@ export function Navbar() {
 
         <div className="flex items-center gap-1.5 sm:gap-3">
           <SearchButton />
-          <ButtonLink href="/sign-in" variant="secondary" size="md" className="hidden sm:inline-flex">
-            Sign In
-          </ButtonLink>
-          <ButtonLink href="/get-started" variant="primary" size="md" className="hidden sm:inline-flex">
-            Get Started
-          </ButtonLink>
+          <UserMenu />
           <MobileMenu />
         </div>
       </Container>

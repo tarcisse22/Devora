@@ -3,6 +3,7 @@
 import { Check, RotateCcw } from "lucide-react";
 import { clearLocalList, toggleInLocalList, useLocalList } from "@/lib/local-store";
 import { cn } from "@/lib/utils";
+import { SyncNote } from "@/components/auth/sync-note";
 
 export const checklistKey = (slug: string) => `devora:project:${slug}:checklist`;
 
@@ -48,7 +49,7 @@ export function ProjectChecklist({ slug, items }: { slug: string; items: string[
         })}
       </ul>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 text-[12.5px] text-fg-subtle">
-        <span>Your progress is saved in this browser only.</span>
+        <SyncNote />
         {count > 0 && (
           <button type="button" onClick={() => clearLocalList(key)} className="flex items-center gap-1.5 text-fg-muted transition-colors hover:text-fg">
             <RotateCcw className="size-3.5" aria-hidden /> Reset checklist

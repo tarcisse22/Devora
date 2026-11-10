@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
-    "test:live": "node tests/live/firestore-rules.live.mjs"
+    "test:live": "node tests/live/firestore-rules.live.mjs",
+    "test:e2e": "node tests/live/community.e2e.mjs"
   },
   "dependencies": {
     "@bjorn3/browser_wasi_shim": "^0.4.2",

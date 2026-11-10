@@ -197,7 +197,7 @@ export function ChallengeWorkspace({ slug }: { slug: string }) {
             </p>
           ) : !outcome ? (
             <p className="text-[13.5px] leading-relaxed text-fg-subtle">
-              <span className="text-fg-muted">Run tests</span> checks the examples. <span className="text-fg-muted">Submit</span> also runs {challenge.tests.length - visible.length} hidden tests — pass them all to mark the challenge solved in this browser.
+              <span className="text-fg-muted">Run tests</span> checks the examples. <span className="text-fg-muted">Submit</span> also runs {challenge.tests.length - visible.length} hidden tests — pass them all to mark the challenge solved.
             </p>
           ) : (
             <div className="space-y-4">
@@ -210,7 +210,7 @@ export function ChallengeWorkspace({ slug }: { slug: string }) {
               <p className={cn("flex items-center gap-2 text-[14px] font-medium", allPassed ? "text-success" : "text-fg")}>
                 {allPassed ? <CheckCircle2 className="size-4" aria-hidden /> : <XCircle className="size-4 text-[#ff9b9b]" aria-hidden />}
                 {passed} / {outcome.tests.length} tests passed
-                {allPassed && outcome.mode === "submit" && <span className="font-normal text-fg-muted">— solved! Saved in this browser.</span>}
+                {allPassed && outcome.mode === "submit" && <span className="font-normal text-fg-muted">— solved!</span>}
                 {allPassed && outcome.mode === "run" && <span className="font-normal text-fg-muted">— now Submit to run the hidden tests.</span>}
               </p>
               <ol className="space-y-2">

@@ -7,6 +7,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { FeatureHeader } from "@/components/layout/feature-header";
 import { ButtonLink } from "@/components/ui/button";
 import { SubjectProgress } from "@/components/learn/lesson-progress";
+import { SyncNote } from "@/components/auth/sync-note";
 
 export const metadata: Metadata = { title: "Learn", description: features.learn.summary };
 
@@ -43,7 +44,7 @@ export default function LearnPage() {
             </li>
           ))}
         </ol>
-        <p className="mt-4 text-[12.5px] text-fg-subtle">Lesson progress is saved in this browser only.</p>
+        <SyncNote className="mt-4 block" />
       </section>
     </PageShell>
   );

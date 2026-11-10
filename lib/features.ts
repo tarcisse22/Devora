@@ -166,15 +166,15 @@ export const features: Record<FeatureId, Feature> = {
     name: "Community",
     href: "/community",
     icon: Users,
-    status: "planned",
-    summary: "Discussions, shared projects and resources — once accounts exist.",
+    status: "available",
+    summary: "Ask questions, share projects and resources, and discuss with other learners.",
     description:
-      "A place for discussions, questions, shared projects and learning resources. It needs accounts and a backend, so it comes after those are in place.",
+      "Questions, discussions, shared projects and learning resources — posted by real Devora members. Reading is open to everyone; sign in to post, reply and like.",
     scope: [
-      "Discussions and Q&A",
-      "Shared projects",
-      "Curated learning resources",
-      "Developer profiles",
+      "Threads in four categories: questions, discussions, shared projects, resources",
+      "Replies, likes and public developer profiles",
+      "Edit or delete your own posts; thread authors can moderate replies",
+      "Spam protection enforced by the database",
     ],
   },
 };

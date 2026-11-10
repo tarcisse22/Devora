@@ -20,7 +20,8 @@ const safeNext = (next: string | null) => (next && next.startsWith("/") && !next
 export function SignInForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = safeNext(params.get("next"));
+  const nextParam = params.get("next");
+  const next = safeNext(nextParam);
   const { user, needsProfile, loading } = useAuth();
   const [mode, setMode] = useState<Mode>(params.get("mode") === "create" ? "create" : "sign-in");
   const [email, setEmail] = useState("");
@@ -32,8 +33,10 @@ export function SignInForm() {
   // Already signed in (or just signed in): continue.
   useEffect(() => {
     if (loading || !user) return;
-    router.replace(needsProfile ? `/account/setup?next=${encodeURIComponent(next)}` : next);
-  }, [loading, user, needsProfile, next, router]);
+    // New accounts go on to choose a username, then to where they were
+    // headed (or the community, if they came straight to sign up).
+    router.replace(needsProfile ? `/account/setup${nextParam ? `?next=${encodeURIComponent(next)}` : ""}` : next);
+  }, [loading, user, needsProfile, next, nextParam, router]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();

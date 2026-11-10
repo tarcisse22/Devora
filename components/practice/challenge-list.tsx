@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Select } from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/empty-state";
 import { difficultyStyle } from "./rich-text";
+import { SyncNote } from "@/components/auth/sync-note";
 
 const levels: (Difficulty | "All")[] = ["All", "Easy", "Medium", "Hard"];
 
@@ -71,7 +72,7 @@ export function ChallengeList() {
       </div>
 
       <p className="mt-4 text-[13px] text-fg-muted">
-        {filtered.length} of {challenges.length} challenges · {solvedCount} solved <span className="text-fg-subtle">(progress is saved in this browser only)</span>
+        {filtered.length} of {challenges.length} challenges · {solvedCount} solved · <SyncNote />
       </p>
 
       {filtered.length === 0 ? (

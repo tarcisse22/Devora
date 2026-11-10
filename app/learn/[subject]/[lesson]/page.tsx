@@ -8,6 +8,7 @@ import { FadeIn } from "@/components/ui/fade-in";
 import { LessonBlocks } from "@/components/learn/lesson-blocks";
 import { Quiz } from "@/components/learn/quiz";
 import { LessonNav, MarkComplete } from "@/components/learn/lesson-progress";
+import { SyncNote } from "@/components/auth/sync-note";
 
 type Params = { params: Promise<{ subject: string; lesson: string }> };
 
@@ -110,7 +111,7 @@ export default async function LessonPage({ params }: Params) {
             <p className="px-2.5 pb-2 text-[12px] font-medium uppercase tracking-[0.08em] text-fg-subtle">{subject.name}</p>
             <LessonNav subject={subject.slug} lessons={subject.lessons} current={lesson.slug} />
           </div>
-          <p className="px-1 text-[12px] text-fg-subtle">Progress is saved in this browser only.</p>
+          <SyncNote className="block px-1" />
         </aside>
       </div>
     </PageShell>

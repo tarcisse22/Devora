@@ -54,7 +54,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         unsubProfile = onSnapshot(
           doc(db(), "users", user.uid),
           (snap) => {
-            const profile = snap.exists() ? toProfile(user.uid, snap.data()) : null;
+            // "estimate" fills pending server timestamps (e.g. lastPostAt right
+            // after posting) with the local time, so cooldowns apply immediately.
+            const profile = snap.exists() ? toProfile(user.uid, snap.data({ serverTimestamps: "estimate" })) : null;
             setState({ loading: false, user, profile, needsProfile: !profile });
           },
           () => setState({ loading: false, user, profile: null, needsProfile: false }),

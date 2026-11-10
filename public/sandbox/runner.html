@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Devora code runner</title>
+<!--
+  Devora's code runner. Loaded only inside <iframe sandbox="allow-scripts">,
+  so it has an opaque origin: no access to Devora's cookies, storage or DOM.
+  User code runs in a Web Worker created here, so infinite loops can be
+  terminated without freezing the app. Talks to the app only via postMessage.
+
+  Protocol (app -> runner):
+    { type: "run",  id, language: "javascript" | "python", code, timeoutMs }
+    { type: "stop", id }
+  Protocol (runner -> app):
+    { type: "ready" }
+    { type: "status", id, text }                 e.g. loading a runtime
+    { type: "output", id, stream: "stdout" | "stderr" | "warn" | "info", text }
+    { type: "trace",  id, steps }                code-tracer mode only
+    { type: "done",   id, ok, error?, durationMs }
+-->
+</head>
+<body>
+<script type="text/plain" id="js-worker">
+// ---------------------------------------------------------------- JS worker
+const send = (msg) => postMessage(msg);
+
+function fmt(value, depth, seen) {
+  if (typeof value === "string") return depth === 0 ? value : JSON.stringify(value);
+  if (typeof value === "bigint") return value + "n";
+  if (typeof value === "symbol") return value.toString();
+  if (typeof value === "function") return value.name ? "[Function: " + value.name + "]" : "[Function (anonymous)]";
+  if (value === null || typeof value !== "object") return String(value);
+  if (value instanceof Error) return value.name + ": " + value.message;
+  if (seen.has(value)) return "[Circular]";
+  if (depth > 3) return Array.isArray(value) ? "[Array]" : "[Object]";
+  seen.add(value);
+  let out;
+  if (Array.isArray(value)) {
+    const items = value.slice(0, 100).map((v) => fmt(v, depth + 1, seen));
+    if (value.length > 100) items.push("… " + (value.length - 100) + " more");
+    out = "[ " + items.join(", ") + " ]";
+    if (items.length === 0) out = "[]";
+  } else if (value instanceof Map) {
+    out = "Map(" + value.size + ") { " + [...value].map(([k, v]) => fmt(k, depth + 1, seen) + " => " + fmt(v, depth + 1, seen)).join(", ") + " }";
+  } else if (value instanceof Set) {
+    out = "Set(" + value.size + ") { " + [...value].map((v) => fmt(v, depth + 1, seen)).join(", ") + " }";
+  } else if (value instanceof Date) {
+    out = value.toISOString();
+  } else {
+    const name = value.constructor && value.constructor !== Object ? value.constructor.name + " " : "";
+    const keys = Object.keys(value);
+    out = keys.length === 0 ? name + "{}" : name + "{ " + keys.map((k) => k + ": " + fmt(value[k], depth + 1, seen)).join(", ") + " }";
+  }
+  seen.delete(value);
+  return out;
+}
+
+let runId = null;
+const log = (stream) => (...args) => send({ type: "output", id: runId, stream, text: args.map((a) => fmt(a, 0, new Set())).join(" ") });
+console.log = log("stdout");
+console.info = log("info");
+console.debug = log("stdout");
+console.warn = log("warn");
+console.error = log("stderr");
+console.table = log("stdout");
+console.clear = () => {};
+
+// Track timers so the run only finishes once pending callbacks are done.
+let pending = 0;
+const _setTimeout = setTimeout, _clearTimeout = clearTimeout, _setInterval = setInterval, _clearInterval = clearInterval;
+const timeouts = new Set(), intervals = new Set();
+self.setTimeout = (fn, ms, ...a) => { const t = _setTimeout(() => { timeouts.delete(t); pending--; try { typeof fn === "function" && fn(...a); } catch (e) { reportError(e); } }, ms); timeouts.add(t); pending++; return t; };
+self.clearTimeout = (t) => { if (timeouts.delete(t)) { pending--; _clearTimeout(t); } };
+self.setInterval = (fn, ms, ...a) => { const t = _setInterval(() => { try { fn(...a); } catch (e) { reportError(e); } }, ms); intervals.add(t); pending++; return t; };
+self.clearInterval = (t) => { if (intervals.delete(t)) { pending--; _clearInterval(t); } };
+
+// Work out how many lines the Function wrapper adds, to report user line numbers.
+const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+let lineOffset = 0;
+try { new AsyncFunction("throw new Error()\n//# sourceURL=probe.js")().catch((e) => { const m = /probe\.js:(\d+)/.exec(e.stack || ""); if (m) lineOffset = Number(m[1]) - 1; }); } catch (_) {}
+
+let errored = false;
+function reportError(err) {
+  errored = true;
+  let text;
+  if (err instanceof Error) {
+    const m = /main\.js:(\d+):(\d+)/.exec(err.stack || "");
+    text = err.name + ": " + err.message + (m ? "  (line " + (Number(m[1]) - lineOffset) + ")" : "");
+  } else {
+    text = "Uncaught " + fmt(err, 0, new Set());
+  }
+  send({ type: "output", id: runId, stream: "stderr", text });
+}
+self.addEventListener("unhandledrejection", (e) => { e.preventDefault(); reportError(e.reason); });
+
+// Code-tracer hooks (only used when the app sends instrumented code).
+const trace = { steps: [], stack: [], limit: 2000 };
+self.__devora = {
+  step(line, scopeGetter) {
+    if (trace.steps.length >= trace.limit) throw new Error("Step limit reached (" + trace.limit + " steps). Is there an infinite loop?");
+    let vars = {};
+    try { vars = scopeGetter(); } catch (_) {}
+    const shown = {};
+    for (const k of Object.keys(vars)) shown[k] = vars[k] === self.__devora.TDZ ? "<uninitialized>" : fmt(vars[k], 1, new Set());
+    trace.steps.push({ line, vars: shown, stack: trace.stack.map((f) => f.name), outputLength: outputCount });
+  },
+  enter(name) { trace.stack.push({ name }); if (trace.stack.length > 200) throw new RangeError("Maximum call depth (200) exceeded"); },
+  exit() { trace.stack.pop(); },
+  TDZ: Symbol("tdz"),
+};
+let outputCount = 0;
+const _log = console.log;
+const counting = (fn) => (...a) => { outputCount++; fn(...a); };
+console.log = counting(console.log); console.info = counting(console.info); console.warn = counting(console.warn); console.error = counting(console.error);
+
+self.onmessage = async (e) => {
+  const { id, code, mode } = e.data;
+  runId = id;
+  const started = performance.now();
+  try {
+    const fn = new AsyncFunction(code + "\n//# sourceURL=main.js");
+    await fn();
+  } catch (err) {
+    reportError(err);
+  }
+  const finish = () => {
+    if (mode === "trace") send({ type: "trace", id, steps: trace.steps });
+    send({ type: "done", id, ok: !errored, durationMs: Math.round(performance.now() - started) });
+  };
+  const waitIdle = () => (pending <= 0 ? finish() : _setTimeout(waitIdle, 10));
+  waitIdle();
+};
+send({ type: "worker-ready" });
+</script>
+
+<script type="text/plain" id="py-worker">
+// ------------------------------------------------------------ Python worker
+import { loadPyodide } from "__VENDOR__pyodide/pyodide.mjs";
+
+let pyodide = null;
+let runId = null;
+const send = (msg) => postMessage(msg);
+
+function cleanTraceback(message) {
+  // Drop frames from Pyodide's own runtime; keep the user's code and the error.
+  const lines = message.split("\n");
+  const out = [];
+  let skipping = false;
+  for (const line of lines) {
+    if (/^\s+File "\/lib\/python/.test(line) || /^\s+File "<frozen/.test(line)) { skipping = true; continue; }
+    if (skipping && /^\s{4,}/.test(line)) continue;
+    skipping = false;
+    out.push(line);
+  }
+  return out.join("\n").trim();
+}
+
+self.onmessage = async (e) => {
+  const { id, code } = e.data;
+  runId = id;
+  try {
+    if (!pyodide) {
+      send({ type: "status", id, text: "Loading Python runtime…" });
+      pyodide = await loadPyodide({ indexURL: "__VENDOR__pyodide/" });
+      pyodide.setStdin({ error: true });
+    }
+    pyodide.setStdout({ batched: (text) => send({ type: "output", id: runId, stream: "stdout", text }) });
+    pyodide.setStderr({ batched: (text) => send({ type: "output", id: runId, stream: "stderr", text }) });
+    send({ type: "started", id });
+    const started = performance.now();
+    const namespace = pyodide.globals.get("dict")();
+    try {
+      await pyodide.runPythonAsync(code, { globals: namespace, filename: "main.py" });
+      send({ type: "done", id, ok: true, durationMs: Math.round(performance.now() - started) });
+    } catch (err) {
+      send({ type: "output", id, stream: "stderr", text: cleanTraceback(String(err.message || err)) });
+      send({ type: "done", id, ok: false, durationMs: Math.round(performance.now() - started) });
+    } finally {
+      namespace.destroy();
+    }
+  } catch (err) {
+    send({ type: "done", id, ok: false, error: "Could not load the Python runtime: " + (err && err.message ? err.message : err) });
+  }
+};
+</script>
+
+<script>
+(() => {
+  const VENDOR = new URL("/vendor/", location.href).href;
+  const post = (msg) => parent.postMessage(msg, "*");
+
+  const source = (id) => document.getElementById(id).textContent.replaceAll("__VENDOR__", VENDOR);
+  const blobUrl = (id) => URL.createObjectURL(new Blob([source(id)], { type: "text/javascript" }));
+  const jsUrl = blobUrl("js-worker");
+  // Chromium refuses blob: module workers in an opaque origin, but allows
+  // data: module workers — and Pyodide requires a module worker.
+  const pyUrl = "data:text/javascript;charset=utf-8," + encodeURIComponent(source("py-worker"));
+
+  let pyWorker = null;         // kept between runs: loading Python is slow
+  let current = null;          // { id, worker, language, timer }
+
+  function finish(id, msg) {
+    if (!current || current.id !== id) return;
+    clearTimeout(current.timer);
+    if (current.language === "javascript") current.worker.terminate();
+    current = null;
+    post({ ...msg, id, type: "done" });
+  }
+
+  function kill(reason) {
+    if (!current) return;
+    const { id, worker, language } = current;
+    clearTimeout(current.timer);
+    worker.terminate();
+    if (language === "python") pyWorker = null; // reload next time
+    current = null;
+    post({ type: "done", id, ok: false, error: reason });
+  }
+
+  function startTimer(id, timeoutMs) {
+    current.timer = setTimeout(() => {
+      if (current && current.id === id) kill("Stopped after " + timeoutMs / 1000 + "s — the program took too long (possibly an infinite loop).");
+    }, timeoutMs);
+  }
+
+  function wire(worker, id, language, timeoutMs) {
+    worker.onmessage = (e) => {
+      const msg = e.data;
+      if (!current || msg.id !== current.id) return;
+      if (msg.type === "started") return startTimer(id, timeoutMs);
+      if (msg.type === "done") return finish(id, msg);
+      post(msg);
+    };
+    worker.onerror = (e) => {
+      e.preventDefault();
+      if (current && current.id === id) kill("The runtime crashed: " + (e.message || "unknown error"));
+    };
+  }
+
+  function run({ id, language, code, timeoutMs = 5000, mode = "run" }) {
+    if (current) kill("Interrupted by a new run.");
+    if (language === "javascript") {
+      const worker = new Worker(jsUrl);
+      current = { id, worker, language, timer: 0 };
+      wire(worker, id, language, timeoutMs);
+      startTimer(id, timeoutMs);
+      worker.postMessage({ id, code, mode });
+    } else if (language === "python") {
+      if (!pyWorker) pyWorker = new Worker(pyUrl, { type: "module" });
+      current = { id, worker: pyWorker, language, timer: 0 };
+      wire(pyWorker, id, language, timeoutMs); // timer starts once Python is loaded
+      pyWorker.postMessage({ id, code });
+    } else {
+      post({ type: "done", id, ok: false, error: "Unsupported language: " + language });
+    }
+  }
+
+  window.addEventListener("message", (e) => {
+    if (e.source !== parent) return;
+    const msg = e.data || {};
+    if (msg.type === "run") run(msg);
+    else if (msg.type === "stop" && current && current.id === msg.id) kill("Stopped.");
+  });
+
+  post({ type: "ready" });
+})();
+</script>
+</body>
+</html>

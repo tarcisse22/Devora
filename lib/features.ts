@@ -83,10 +83,10 @@ export const features: Record<FeatureId, Feature> = {
     name: "Playground",
     href: "/playground",
     icon: SquareTerminal,
-    status: "planned",
-    summary: "A browser-based editor that actually runs your code.",
+    status: "available",
+    summary: "Write and run JavaScript, TypeScript and Python in your browser.",
     description:
-      "A lightweight developer environment: write code, run it in an isolated sandbox and inspect the output.",
+      "A lightweight developer environment: write code, run it in an isolated sandbox and inspect the output. JavaScript, TypeScript and Python run today; Java is clearly marked until it can.",
     scope: [
       "Code editor with syntax highlighting and line numbers",
       "Sandboxed JavaScript execution, isolated from the app",

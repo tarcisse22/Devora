@@ -2,20 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { features } from "@/lib/features";
+import { languageOrder, languages } from "@/lib/execution/languages";
 import { PageShell, SectionHeading } from "@/components/layout/page-shell";
 import { FeatureHeader } from "@/components/layout/feature-header";
-import { PlannedScope } from "@/components/layout/planned-scope";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Playground } from "@/components/playground/playground";
 
 export const metadata: Metadata = { title: "Playground", description: features.playground.summary };
-
-/** How each language is planned to run. None executes yet. */
-const runtimes = [
-  { name: "JavaScript", plan: "Runs in a sandboxed iframe, isolated from the rest of Devora." },
-  { name: "Python", plan: "Runs in the browser through Pyodide (Python compiled to WebAssembly)." },
-  { name: "TypeScript", plan: "Type-stripped in the browser, then run in the JavaScript sandbox." },
-  { name: "Java", plan: "Needs a dedicated runtime. It will stay labelled as unsupported until it executes reliably." },
-];
 
 const related = [features["code-tracer"], features["sql-lab"]];
 
@@ -24,20 +17,27 @@ export default function PlaygroundPage() {
     <PageShell>
       <FeatureHeader id="playground" title="Write code. Run it. See what happens." />
 
+      <section aria-label="Code playground" className="mt-10 sm:mt-12">
+        <Playground />
+      </section>
+
       <section aria-labelledby="runtimes" className="mt-16 sm:mt-20">
         <SectionHeading
           id="runtimes"
-          title="Languages and how they will run"
-          description="A language is only advertised as runnable once code in it actually executes."
+          title="How your code runs"
+          description="Code never runs on Devora’s page itself. Each run happens in an isolated sandbox with no access to your cookies or storage, and long-running programs are stopped automatically."
         />
         <ul className="mt-8 divide-y divide-line overflow-hidden rounded-[var(--radius-xl)] border border-line">
-          {runtimes.map((rt) => (
-            <li key={rt.name} className="flex flex-col gap-2 p-5 sm:flex-row sm:items-center sm:gap-6 sm:px-6">
-              <p className="w-32 shrink-0 font-mono text-[14px] text-fg">{rt.name}</p>
-              <p className="flex-1 text-[14px] leading-relaxed text-fg-muted">{rt.plan}</p>
-              <StatusBadge status="planned" className="self-start sm:self-auto" />
-            </li>
-          ))}
+          {languageOrder.map((id) => {
+            const lang = languages[id];
+            return (
+              <li key={id} className="flex flex-col gap-2 p-5 sm:flex-row sm:items-center sm:gap-6 sm:px-6">
+                <p className="w-32 shrink-0 font-mono text-[14px] text-fg">{lang.label}</p>
+                <p className="flex-1 text-[14px] leading-relaxed text-fg-muted">{lang.note}</p>
+                <StatusBadge status={lang.runtime ? "available" : "planned"} className="self-start sm:self-auto" />
+              </li>
+            );
+          })}
         </ul>
       </section>
 
@@ -64,10 +64,6 @@ export default function PlaygroundPage() {
           ))}
         </ul>
       </section>
-
-      <div className="mt-16 sm:mt-20">
-        <PlannedScope feature={features.playground} />
-      </div>
     </PageShell>
   );
 }

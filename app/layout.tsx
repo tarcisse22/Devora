@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { siteConfig } from "@/lib/site";
 import { Navbar } from "@/components/navigation/navbar";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SearchProvider } from "@/components/search/search-provider";
 import "@/styles/globals.css";
 
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans", display: "swap" });
@@ -23,9 +25,20 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="min-h-dvh">
-        <Navbar />
-        <main>{children}</main>
+      <body className="flex min-h-dvh flex-col">
+        <SearchProvider>
+          <a
+            href="#main"
+            className="sr-only z-[200] rounded-md bg-accent-200 px-4 py-2 text-sm font-medium text-[#14101f] focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+          >
+            Skip to content
+          </a>
+          <Navbar />
+          <main id="main" className="flex-1">
+            {children}
+          </main>
+          <SiteFooter />
+        </SearchProvider>
       </body>
     </html>
   );

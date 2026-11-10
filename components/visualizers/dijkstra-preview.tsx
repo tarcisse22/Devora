@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { GraphCanvas } from "./graph-canvas";
 import { StepControls } from "./step-controls";
 import { CodeTrace } from "./code-trace";
+import { Kbd } from "@/components/ui/kbd";
 
 const SOURCE = "A";
 
@@ -134,18 +135,11 @@ function Legend() {
         </li>
       ))}
       <li className="ml-auto hidden items-center gap-1 lg:flex">
-        <Kbd>←</Kbd>
-        <Kbd>→</Kbd>
+        <Kbd className="h-[18px] min-w-[18px] px-1 text-[10px]">←</Kbd>
+        <Kbd className="h-[18px] min-w-[18px] px-1 text-[10px]">→</Kbd>
         <span className="ml-1">to step</span>
       </li>
     </ul>
   );
 }
 
-function Kbd({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded border border-line-strong bg-white/[0.04] px-1 font-sans text-[10px] text-fg-muted">
-      {children}
-    </kbd>
-  );
-}

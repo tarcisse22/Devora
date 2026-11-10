@@ -3,13 +3,23 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUpRight, Menu, X } from "lucide-react";
+import { ArrowUpRight, Menu, Search, X } from "lucide-react";
 import { mainNav } from "@/lib/site";
+import { cn } from "@/lib/utils";
 import { ButtonLink } from "@/components/ui/button";
+import { useSearch } from "@/components/search/search-provider";
+import { isActivePath } from "./nav-link";
+
+const subscribe = () => () => {};
 
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const search = useSearch();
+  // Portal target only exists on the client.
+  const mounted = useSyncExternalStore(subscribe, () => true, () => false);
 
   // Lock scroll and allow Escape to close while the menu is open.
   useEffect(() => {
@@ -24,15 +34,9 @@ export function MobileMenu() {
   }, [open]);
 
   const close = () => setOpen(false);
-  // Portal target only exists on the client.
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
 
   return (
-    <div className="lg:hidden">
+    <div className="xl:hidden">
       <button
         type="button"
         aria-label={open ? "Close menu" : "Open menu"}
@@ -54,7 +58,7 @@ export function MobileMenu() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="fixed inset-0 z-40 bg-canvas/95 backdrop-blur-xl lg:hidden"
+                className="fixed inset-0 z-40 overflow-y-auto bg-canvas/95 backdrop-blur-xl xl:hidden"
               >
                 <motion.nav
                   aria-label="Mobile"
@@ -62,27 +66,45 @@ export function MobileMenu() {
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: -8, opacity: 0 }}
                   transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex h-full flex-col px-5 pb-8 pt-24 sm:px-8"
+                  className="mx-auto flex min-h-full max-w-[640px] flex-col px-5 pb-8 pt-[88px] sm:px-8"
                 >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      close();
+                      search.open();
+                    }}
+                    className="mb-4 flex h-11 w-full items-center gap-3 rounded-[var(--radius-md)] border border-line-strong bg-white/[0.03] px-3.5 text-[15px] text-fg-muted transition-colors hover:bg-white/[0.06] hover:text-fg"
+                  >
+                    <Search className="size-[18px]" strokeWidth={1.75} aria-hidden />
+                    Search Devora
+                  </button>
                   <ul className="flex flex-col">
-                    {mainNav.map((item) => (
-                      <li key={item.href} className="border-b border-line">
-                        <Link
-                          href={item.href}
-                          onClick={close}
-                          className="flex items-center justify-between py-4 text-xl font-medium text-fg/90 transition-colors hover:text-fg"
-                        >
-                          {item.label}
-                          <ArrowUpRight className="size-4 text-fg-subtle" />
-                        </Link>
-                      </li>
-                    ))}
+                    {mainNav.map((item) => {
+                      const active = isActivePath(pathname, item.href);
+                      return (
+                        <li key={item.href} className="border-b border-line">
+                          <Link
+                            href={item.href}
+                            onClick={close}
+                            aria-current={active ? "page" : undefined}
+                            className={cn(
+                              "flex items-center justify-between py-3.5 text-lg font-medium transition-colors",
+                              active ? "text-accent-200" : "text-fg/90 hover:text-fg",
+                            )}
+                          >
+                            {item.label}
+                            <ArrowUpRight className="size-4 text-fg-subtle" aria-hidden />
+                          </Link>
+                        </li>
+                      );
+                    })}
                   </ul>
-                  <div className="mt-auto grid grid-cols-2 gap-3">
-                    <ButtonLink href="#sign-in" onClick={close} variant="secondary" size="lg">
+                  <div className="mt-auto grid grid-cols-2 gap-3 pt-8">
+                    <ButtonLink href="/sign-in" onClick={close} variant="secondary" size="lg">
                       Sign In
                     </ButtonLink>
-                    <ButtonLink href="#get-started" onClick={close} variant="primary" size="lg">
+                    <ButtonLink href="/get-started" onClick={close} variant="primary" size="lg">
                       Get Started
                     </ButtonLink>
                   </div>

@@ -1,48 +1,30 @@
-import { Box, ChartNoAxesColumn, Code, CodeXml, Layers, Users, Zap, type LucideIcon } from "lucide-react";
+import { CodeXml, Layers, Zap, type LucideIcon } from "lucide-react";
 
-export type Feature = {
-  /** Anchor id so primary navigation can link to the feature. */
-  id: string;
+export type HeroPillar = {
   title: string;
   description: string;
+  href: string;
   icon: LucideIcon;
 };
 
-export const features: Feature[] = [
+/** The three pillars shown beneath the hero call-to-actions. */
+export const heroPillars: HeroPillar[] = [
   {
-    id: "learn",
     title: "Interactive Learning",
     description: "Visualize and understand core concepts.",
+    href: "/learn",
     icon: CodeXml,
   },
   {
-    id: "practice",
     title: "Practice & Grow",
-    description: "Solve programming problems and track your progress.",
+    description: "Solve programming problems with real test cases.",
+    href: "/practice",
     icon: Zap,
   },
   {
-    id: "projects",
     title: "Build Projects",
     description: "Apply your skills through practical projects.",
+    href: "/projects",
     icon: Layers,
   },
-];
-
-export type Stat = {
-  value: string;
-  label: string;
-  icon: LucideIcon;
-};
-
-/**
- * Placeholder figures for the design preview. These are NOT real platform
- * metrics — replace them with live data once it exists, and keep the
- * on-page disclaimer until then.
- */
-export const placeholderStats: Stat[] = [
-  { value: "120K+", label: "Learners", icon: Users },
-  { value: "300+", label: "Visualizers", icon: Code },
-  { value: "50+", label: "Projects", icon: Box },
-  { value: "1000+", label: "Practice Problems", icon: ChartNoAxesColumn },
 ];

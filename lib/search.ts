@@ -1,11 +1,11 @@
 import { featureList, statusLabel, type FeatureId, type FeatureStatus } from "./features";
-import { learnSubjects } from "./curriculum";
+import { allLessons, lessonHref, subjects } from "./learn";
 import { projects } from "./projects/projects";
 import { dataStructures } from "./data-structures/catalog";
 import { algorithms, categoryLabel } from "./algorithms/catalog";
 import { challenges } from "./practice/challenges";
 
-export type SearchKind = "Page" | "Tool" | "Subject" | "Algorithm" | "Data structure" | "Project" | "Challenge";
+export type SearchKind = "Page" | "Tool" | "Subject" | "Lesson" | "Algorithm" | "Data structure" | "Project" | "Challenge";
 
 export type SearchEntry = {
   id: string;
@@ -35,15 +35,24 @@ export const searchIndex: SearchEntry[] = [
     description: f.summary,
     keywords: f.scope,
   })),
-  ...learnSubjects.map<SearchEntry>((s) => ({
-    id: `subject-${s.name}`,
+  ...subjects.map<SearchEntry>((s) => ({
+    id: `subject-${s.slug}`,
     title: s.name,
-    href: "/learn#subjects",
+    href: `/learn/${s.slug}`,
     kind: "Subject",
     feature: "learn",
-    status: "planned",
-    description: s.topics.join(" · "),
-    keywords: [...s.topics],
+    status: "available",
+    description: s.description,
+    keywords: s.lessons.map((l) => l.title),
+  })),
+  ...allLessons.map<SearchEntry>(({ subject, lesson }) => ({
+    id: `lesson-${subject.slug}-${lesson.slug}`,
+    title: lesson.title,
+    href: lessonHref(subject.slug, lesson.slug),
+    kind: "Lesson",
+    feature: "learn",
+    status: "available",
+    description: `${subject.name} · ${lesson.summary}`,
   })),
   ...algorithms.map<SearchEntry>((a) => ({
     id: `algo-${a.slug}`,

@@ -14,10 +14,10 @@ type Status = "starting" | "ready" | "running" | "error";
 
 const topics = [...new Set(sqlExamples.map((e) => e.topic))];
 
-export function SqlLab() {
+export function SqlLab({ initialSql }: { initialSql?: string } = {}) {
   const db = useRef<SqlDatabase | null>(null);
   const [status, setStatus] = useState<Status>("starting");
-  const [sql, setSql] = useState(sqlExamples[0].sql);
+  const [sql, setSql] = useState(initialSql ?? sqlExamples[0].sql);
   const [outcome, setOutcome] = useState<QueryOutcome | null>(null);
   const [schema, setSchema] = useState<TableSchema[]>([]);
   const [openTable, setOpenTable] = useState<string | null>("students");

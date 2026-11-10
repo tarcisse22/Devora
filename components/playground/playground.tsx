@@ -12,10 +12,16 @@ import { Select } from "@/components/ui/select";
 import { OutputPanel } from "./output-panel";
 import { useCodeRunner } from "./use-code-runner";
 
-export function Playground() {
-  const [language, setLanguage] = useState<PlaygroundLanguage>("javascript");
-  const [exampleId, setExampleId] = useState(examples.javascript[0].id);
-  const [code, setCode] = useState(examples.javascript[0].code);
+type Props = {
+  /** Open with this code instead of the first example (e.g. from a lesson). */
+  initialLanguage?: PlaygroundLanguage;
+  initialCode?: string;
+};
+
+export function Playground({ initialLanguage = "javascript", initialCode }: Props = {}) {
+  const [language, setLanguage] = useState<PlaygroundLanguage>(initialLanguage);
+  const [exampleId, setExampleId] = useState(examples[initialLanguage][0].id);
+  const [code, setCode] = useState(initialCode ?? examples[initialLanguage][0].code);
   const runner = useCodeRunner();
 
   const info = languages[language];

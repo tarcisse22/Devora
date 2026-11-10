@@ -17,9 +17,9 @@ type Trace = { steps: TracerStep[]; output: Line[]; error: string | null };
 
 const EMPTY: TracerStep[] = [];
 
-export function CodeTracer() {
+export function CodeTracer({ initialCode }: { initialCode?: string } = {}) {
   const [exampleId, setExampleId] = useState(tracerExamples[1].id);
-  const [code, setCode] = useState(tracerExamples[1].code);
+  const [code, setCode] = useState(initialCode ?? tracerExamples[1].code);
   const [trace, setTrace] = useState<Trace | null>(null);
   const [tracing, setTracing] = useState(false);
   const [problem, setProblem] = useState<{ message: string; line?: number } | null>(null);

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { features } from "@/lib/features";
@@ -7,6 +8,7 @@ import { PageShell, SectionHeading } from "@/components/layout/page-shell";
 import { FeatureHeader } from "@/components/layout/feature-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Playground } from "@/components/playground/playground";
+import { PlaygroundFromUrl } from "@/components/shared/from-url";
 
 export const metadata: Metadata = { title: "Playground", description: features.playground.summary };
 
@@ -18,7 +20,9 @@ export default function PlaygroundPage() {
       <FeatureHeader id="playground" title="Write code. Run it. See what happens." />
 
       <section aria-label="Code playground" className="mt-10 sm:mt-12">
-        <Playground />
+        <Suspense fallback={<Playground />}>
+          <PlaygroundFromUrl />
+        </Suspense>
       </section>
 
       <section aria-labelledby="runtimes" className="mt-16 sm:mt-20">

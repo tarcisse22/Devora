@@ -51,8 +51,8 @@ export const features: Record<FeatureId, Feature> = {
     name: "Learn",
     href: "/learn",
     icon: BookOpen,
-    status: "planned",
-    summary: "Structured lessons across core Computer Science subjects.",
+    status: "available",
+    summary: "24 lessons across 8 core Computer Science subjects.",
     description:
       "Lessons organised by subject, each combining clear explanations, code examples, visual illustrations and practical exercises.",
     scope: [

@@ -15,12 +15,6 @@ export const learnSubjects = [
   { name: "Software Engineering", topics: ["Version control", "Testing", "Architecture", "Delivery"] },
 ] as const;
 
-export const algorithmCatalog = [
-  { group: "Sorting", items: ["Bubble Sort", "Selection Sort", "Insertion Sort", "Merge Sort", "Quick Sort"] },
-  { group: "Searching", items: ["Linear Search", "Binary Search"] },
-  { group: "Graph", items: ["Breadth-First Search", "Depth-First Search", "Dijkstra's Shortest Path"] },
-] as const;
-
 export const dataStructureCatalog = [
   "Arrays",
   "Linked Lists",

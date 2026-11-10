@@ -13,8 +13,8 @@ export default function LearnPage() {
   return (
     <PageShell>
       <FeatureHeader id="learn" title="Computer Science, one concept at a time">
-        <ButtonLink href="/visualize#preview">
-          Try the visualizer preview
+        <ButtonLink href="/visualize">
+          Explore the algorithm visualizers
           <ArrowRight className="size-4" aria-hidden />
         </ButtonLink>
       </FeatureHeader>

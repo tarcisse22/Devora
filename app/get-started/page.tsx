@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Command, Network } from "lucide-react";
+import { ArrowRight, Command, Network, SquareTerminal } from "lucide-react";
 import { featureList } from "@/lib/features";
 import { PageHeader, PageShell, SectionHeading } from "@/components/layout/page-shell";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -10,11 +10,18 @@ export const metadata: Metadata = { title: "Get Started" };
 
 const availableNow = [
   {
+    icon: SquareTerminal,
+    title: "Run code in the Playground",
+    text: "Write JavaScript, TypeScript or Python and run it in an isolated sandbox in your browser.",
+    href: "/playground",
+    cta: "Open the Playground",
+  },
+  {
     icon: Network,
-    title: "Step through Dijkstra’s algorithm",
-    text: "An interactive preview driven by a real implementation. Use the arrows or ← → keys.",
-    href: "/visualize#preview",
-    cta: "Open the preview",
+    title: "Visualize 10 algorithms",
+    text: "Sorting, searching and graph algorithms — each replaying a real run on input you control.",
+    href: "/visualize",
+    cta: "Open the visualizers",
   },
   {
     icon: Command,
@@ -25,7 +32,7 @@ const availableNow = [
 ];
 
 export default function GetStartedPage() {
-  const upcoming = featureList.filter((f) => f.status === "planned");
+  const upcoming = featureList.filter((f) => f.status !== "available");
 
   return (
     <PageShell>
@@ -37,7 +44,7 @@ export default function GetStartedPage() {
 
       <section aria-labelledby="now" className="mt-16 sm:mt-20">
         <SectionHeading id="now" title="Available now" />
-        <ul className="mt-8 grid gap-4 md:grid-cols-2">
+        <ul className="mt-8 grid gap-4 md:grid-cols-3">
           {availableNow.map((item) => (
             <li key={item.title} className="flex flex-col rounded-[var(--radius-lg)] border border-line bg-surface/50 p-6">
               <item.icon className="size-5 text-accent-300" strokeWidth={1.75} aria-hidden />
@@ -62,7 +69,7 @@ export default function GetStartedPage() {
       </section>
 
       <section aria-labelledby="next" className="mt-16 sm:mt-20">
-        <SectionHeading id="next" title="In development" description="Open any area to see exactly what it will include." />
+        <SectionHeading id="next" title="In development" description="Open any area to see what works today and exactly what it will include." />
         <ul className="mt-8 divide-y divide-line overflow-hidden rounded-[var(--radius-xl)] border border-line">
           {upcoming.map(({ id, name, href, icon: Icon, summary, status }) => (
             <li key={id}>

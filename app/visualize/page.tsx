@@ -1,48 +1,53 @@
 import type { Metadata } from "next";
-import { algorithmCatalog, dataStructureCatalog } from "@/lib/curriculum";
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
+import { algorithms, categoryLabel, type AlgorithmCategory } from "@/lib/algorithms/catalog";
+import { dataStructureCatalog } from "@/lib/curriculum";
 import { features } from "@/lib/features";
 import { PageShell, SectionHeading } from "@/components/layout/page-shell";
 import { FeatureHeader } from "@/components/layout/feature-header";
-import { PlannedScope } from "@/components/layout/planned-scope";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { DijkstraPreview } from "@/components/visualizers/dijkstra-preview";
 
 export const metadata: Metadata = { title: "Visualize", description: features.visualize.summary };
+
+const categories: AlgorithmCategory[] = ["sorting", "searching", "graph"];
 
 export default function VisualizePage() {
   return (
     <PageShell>
       <FeatureHeader id="visualize" title="See algorithms think" />
 
-      <section aria-labelledby="preview" className="mt-16 sm:mt-20">
-        <SectionHeading
-          id="preview"
-          title="Dijkstra’s shortest path"
-          description="Available now as a preview. Each step is computed by a real implementation of the algorithm — use the arrows or the ← → keys."
-          aside={<StatusBadge status="preview" />}
-        />
-        <div className="mt-8">
-          <DijkstraPreview />
-        </div>
-      </section>
-
       <section aria-labelledby="algorithms" className="mt-16 sm:mt-20">
         <SectionHeading
           id="algorithms"
           title="Algorithms"
-          description="Each algorithm will get its own visualization driven by its real logic — not a shared animation."
+          description="Each one runs its real implementation on your input and records every step — play it, pause it, step through it, change the input."
+          aside={<StatusBadge status="available" />}
         />
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          {algorithmCatalog.map((group) => (
-            <div key={group.group} className="rounded-[var(--radius-lg)] border border-line bg-surface/50 p-6">
-              <h3 className="text-[13px] font-medium uppercase tracking-[0.08em] text-fg-subtle">{group.group}</h3>
-              <ul className="mt-4 space-y-3">
-                {group.items.map((item) => (
-                  <li key={item} className="flex items-center justify-between gap-3 text-[14.5px] text-fg/90">
-                    {item}
-                    <StatusBadge status={item.startsWith("Dijkstra") ? "preview" : "planned"} />
-                  </li>
-                ))}
+        <div className="mt-8 grid gap-4 lg:grid-cols-3">
+          {categories.map((cat) => (
+            <div key={cat} className="rounded-[var(--radius-lg)] border border-line bg-surface/50 p-2">
+              <h3 className="px-4 pb-2 pt-3 text-[12px] font-medium uppercase tracking-[0.08em] text-fg-subtle">{categoryLabel[cat]}</h3>
+              <ul>
+                {algorithms
+                  .filter((a) => a.category === cat)
+                  .map((a) => (
+                    <li key={a.slug}>
+                      <Link
+                        href={`/visualize/algorithms/${a.slug}`}
+                        className="group flex items-start justify-between gap-3 rounded-[var(--radius-md)] px-4 py-3 transition-colors hover:bg-white/[0.04]"
+                      >
+                        <span>
+                          <span className="block text-[15px] font-medium text-fg">{a.name}</span>
+                          <span className="mt-0.5 block text-[13px] leading-relaxed text-fg-muted">{a.summary}</span>
+                        </span>
+                        <span className="mt-0.5 flex shrink-0 items-center gap-2">
+                          <span className="font-mono text-[11.5px] text-fg-subtle">{a.complexity.average}</span>
+                          <ArrowUpRight className="size-4 text-fg-subtle transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent-200" aria-hidden />
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
               </ul>
             </div>
           ))}
@@ -64,10 +69,6 @@ export default function VisualizePage() {
           ))}
         </ul>
       </section>
-
-      <div className="mt-16 sm:mt-20">
-        <PlannedScope feature={features.visualize} />
-      </div>
     </PageShell>
   );
 }

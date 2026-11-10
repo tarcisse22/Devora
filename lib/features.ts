@@ -101,9 +101,9 @@ export const features: Record<FeatureId, Feature> = {
     href: "/visualize",
     icon: Network,
     status: "preview",
-    summary: "Watch algorithms and data structures execute step by step.",
+    summary: "Watch 10 algorithms execute step by step; data structures are next.",
     description:
-      "Interactive visualizations driven by real algorithm implementations, so every frame reflects actual execution.",
+      "Interactive visualizations driven by real algorithm implementations, so every frame reflects actual execution. Ten sorting, searching and graph algorithms are live; data structure visualizers are in development.",
     scope: [
       "Sorting, searching and graph algorithms, each with its own visualization",
       "Play, pause, step forward / back, reset and speed control",

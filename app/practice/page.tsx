@@ -38,8 +38,8 @@ export default function PracticePage() {
         title="No challenges published yet"
         description="The first set of original challenges — each with real test cases — is in development."
       >
-        <ButtonLink href="/visualize#preview" variant="secondary">
-          Explore the visualizer preview
+        <ButtonLink href="/playground" variant="secondary">
+          Write code in the Playground
         </ButtonLink>
       </EmptyState>
 

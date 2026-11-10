@@ -94,12 +94,12 @@ function VideoUnavailable({ onClose }: { onClose: () => void }) {
       </span>
       <h2 className="mt-5 text-xl font-semibold tracking-[-0.01em] text-fg">The walkthrough isn’t recorded yet</h2>
       <p className="mt-3 max-w-[460px] text-[15px] leading-relaxed text-fg-muted">
-        We’ll publish a short product walkthrough once the core tools are built. In the meantime you can explore
-        the interactive Dijkstra preview, which already runs a real algorithm trace.
+        We’ll publish a short product walkthrough once the core tools are built. In the meantime you can use the
+        algorithm visualizers and the code playground — both are already live.
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-        <ButtonLink href="/visualize#preview" onClick={onClose}>
-          Try the visualizer preview
+        <ButtonLink href="/visualize" onClick={onClose}>
+          Explore the visualizers
         </ButtonLink>
         <Button variant="secondary" onClick={onClose}>
           Close

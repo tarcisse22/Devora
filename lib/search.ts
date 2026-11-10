@@ -1,5 +1,6 @@
-import { featureList, features, statusLabel, type FeatureId } from "./features";
-import { algorithmCatalog, dataStructureCatalog, learnSubjects, projectCatalog } from "./curriculum";
+import { featureList, statusLabel, type FeatureId, type FeatureStatus } from "./features";
+import { dataStructureCatalog, learnSubjects, projectCatalog } from "./curriculum";
+import { algorithms, categoryLabel } from "./algorithms/catalog";
 
 export type SearchKind = "Page" | "Tool" | "Subject" | "Algorithm" | "Data structure" | "Project";
 
@@ -8,8 +9,10 @@ export type SearchEntry = {
   title: string;
   href: string;
   kind: SearchKind;
-  /** Owning feature, used for the status label. */
+  /** Owning feature, used for the result icon. */
   feature?: FeatureId;
+  /** Real availability of this specific entry. */
+  status?: FeatureStatus;
   description?: string;
   keywords?: string[];
 };
@@ -25,46 +28,37 @@ export const searchIndex: SearchEntry[] = [
     href: f.href,
     kind: toolIds.includes(f.id) ? "Tool" : "Page",
     feature: f.id,
+    status: f.status,
     description: f.summary,
     keywords: f.scope,
   })),
-  {
-    id: "dijkstra-preview",
-    title: "Dijkstra's Shortest Path — interactive preview",
-    href: "/visualize#preview",
-    kind: "Algorithm",
-    feature: "visualize",
-    description: "Step through a real Dijkstra trace on a sample graph.",
-    keywords: ["graph", "shortest path", "weighted"],
-  },
   ...learnSubjects.map<SearchEntry>((s) => ({
     id: `subject-${s.name}`,
     title: s.name,
     href: "/learn#subjects",
     kind: "Subject",
     feature: "learn",
+    status: "planned",
     description: s.topics.join(" · "),
     keywords: [...s.topics],
   })),
-  ...algorithmCatalog.flatMap((g) =>
-    g.items
-      .filter((name) => !name.startsWith("Dijkstra"))
-      .map<SearchEntry>((name) => ({
-        id: `algo-${name}`,
-        title: name,
-        href: "/visualize#algorithms",
-        kind: "Algorithm",
-        feature: "visualize",
-        description: `${g.group} algorithm visualization`,
-        keywords: [g.group],
-      })),
-  ),
+  ...algorithms.map<SearchEntry>((a) => ({
+    id: `algo-${a.slug}`,
+    title: a.name,
+    href: `/visualize/algorithms/${a.slug}`,
+    kind: "Algorithm",
+    feature: "visualize",
+    status: "available",
+    description: `${categoryLabel[a.category]} · ${a.summary}`,
+    keywords: [a.category, a.complexity.average],
+  })),
   ...dataStructureCatalog.map<SearchEntry>((name) => ({
     id: `ds-${name}`,
     title: name,
     href: "/visualize#data-structures",
     kind: "Data structure",
     feature: "visualize",
+    status: "planned",
     description: "Data structure visualization",
   })),
   ...projectCatalog.map<SearchEntry>((p) => ({
@@ -73,19 +67,14 @@ export const searchIndex: SearchEntry[] = [
     href: "/projects#catalog",
     kind: "Project",
     feature: "projects",
+    status: "planned",
     description: `${p.level} project`,
   })),
 ];
 
-/**
- * Status shown next to a result. Catalogue items under a "preview" feature are
- * still planned individually — only the Dijkstra preview is interactive.
- */
+/** Status label shown next to a result. */
 export function entryStatus(entry: SearchEntry): string | null {
-  if (!entry.feature) return null;
-  if (entry.id === "dijkstra-preview") return statusLabel.preview;
-  if (entry.id.startsWith("feature-")) return statusLabel[features[entry.feature].status];
-  return statusLabel.planned;
+  return entry.status ? statusLabel[entry.status] : null;
 }
 
 const normalize = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[^\w\s]/g, " ");

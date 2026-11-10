@@ -67,10 +67,10 @@ export const features: Record<FeatureId, Feature> = {
     name: "Practice",
     href: "/practice",
     icon: Target,
-    status: "planned",
-    summary: "Original coding challenges with real test cases.",
+    status: "available",
+    summary: "12 original coding challenges with real test cases.",
     description:
-      "Solve original programming challenges in the browser and get feedback from real test cases — no invented success rates.",
+      "Solve original programming challenges in JavaScript or Python. Run the examples, then submit against hidden tests — every result comes from actually running your code.",
     scope: [
       "Challenge list with search, topic filters and difficulty labels",
       "Problem descriptions with input / output examples",

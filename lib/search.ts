@@ -2,8 +2,9 @@ import { featureList, statusLabel, type FeatureId, type FeatureStatus } from "./
 import { learnSubjects, projectCatalog } from "./curriculum";
 import { dataStructures } from "./data-structures/catalog";
 import { algorithms, categoryLabel } from "./algorithms/catalog";
+import { challenges } from "./practice/challenges";
 
-export type SearchKind = "Page" | "Tool" | "Subject" | "Algorithm" | "Data structure" | "Project";
+export type SearchKind = "Page" | "Tool" | "Subject" | "Algorithm" | "Data structure" | "Project" | "Challenge";
 
 export type SearchEntry = {
   id: string;
@@ -62,6 +63,16 @@ export const searchIndex: SearchEntry[] = [
     status: "available",
     description: d.summary,
     keywords: d.operations.map((o) => o.name),
+  })),
+  ...challenges.map<SearchEntry>((c) => ({
+    id: `challenge-${c.slug}`,
+    title: c.title,
+    href: `/practice/${c.slug}`,
+    kind: "Challenge",
+    feature: "practice",
+    status: "available",
+    description: `${c.difficulty} · ${c.topics.join(", ")}`,
+    keywords: c.topics,
   })),
   ...projectCatalog.map<SearchEntry>((p) => ({
     id: `project-${p.name}`,

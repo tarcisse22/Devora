@@ -65,6 +65,7 @@ export function CodeEditor({ value, onChange, language, readOnly = false, onRun,
   const view = useRef<EditorView | null>(null);
   const langCompartment = useRef(new Compartment());
   const readOnlyCompartment = useRef(new Compartment());
+  const labelCompartment = useRef(new Compartment());
   // Keep latest callbacks without recreating the editor.
   const onChangeRef = useRef(onChange);
   const onRunRef = useRef(onRun);
@@ -101,7 +102,7 @@ export function CodeEditor({ value, onChange, language, readOnly = false, onRun,
           highlightField,
           langCompartment.current.of(languageExtension(language)),
           readOnlyCompartment.current.of([EditorState.readOnly.of(readOnly), EditorView.editable.of(!readOnly)]),
-          EditorView.contentAttributes.of({ "aria-label": ariaLabel }),
+          labelCompartment.current.of(EditorView.contentAttributes.of({ "aria-label": ariaLabel })),
           EditorView.updateListener.of((u) => {
             if (u.docChanged) onChangeRef.current?.(u.state.doc.toString());
           }),
@@ -127,6 +128,11 @@ export function CodeEditor({ value, onChange, language, readOnly = false, onRun,
   useEffect(() => {
     view.current?.dispatch({ effects: langCompartment.current.reconfigure(languageExtension(language)) });
   }, [language]);
+
+  // Keep the accessible name in sync (e.g. after switching language).
+  useEffect(() => {
+    view.current?.dispatch({ effects: labelCompartment.current.reconfigure(EditorView.contentAttributes.of({ "aria-label": ariaLabel })) });
+  }, [ariaLabel]);
 
   useEffect(() => {
     view.current?.dispatch({

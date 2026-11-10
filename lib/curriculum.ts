@@ -14,13 +14,3 @@ export const learnSubjects = [
   { name: "Computer Networks", topics: ["Network layers", "TCP/IP", "HTTP", "DNS"] },
   { name: "Software Engineering", topics: ["Version control", "Testing", "Architecture", "Delivery"] },
 ] as const;
-
-export const projectCatalog = [
-  { name: "Personal Portfolio", level: "Beginner" },
-  { name: "Task Manager", level: "Beginner" },
-  { name: "Weather Application", level: "Intermediate" },
-  { name: "Expense Tracker", level: "Intermediate" },
-  { name: "REST API", level: "Intermediate" },
-  { name: "Authentication System", level: "Advanced" },
-  { name: "Full-Stack Application", level: "Advanced" },
-] as const;

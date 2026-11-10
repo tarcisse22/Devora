@@ -150,8 +150,8 @@ export const features: Record<FeatureId, Feature> = {
     name: "Projects",
     href: "/projects",
     icon: FolderKanban,
-    status: "planned",
-    summary: "Guided, practical projects that turn concepts into software.",
+    status: "available",
+    summary: "7 guided projects, from a portfolio to a full-stack app.",
     description:
       "Practical builds organised by difficulty and technology, each with objectives, instructions and a completion checklist.",
     scope: [

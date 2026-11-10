@@ -1,5 +1,6 @@
 import { featureList, statusLabel, type FeatureId, type FeatureStatus } from "./features";
-import { learnSubjects, projectCatalog } from "./curriculum";
+import { learnSubjects } from "./curriculum";
+import { projects } from "./projects/projects";
 import { dataStructures } from "./data-structures/catalog";
 import { algorithms, categoryLabel } from "./algorithms/catalog";
 import { challenges } from "./practice/challenges";
@@ -74,14 +75,15 @@ export const searchIndex: SearchEntry[] = [
     description: `${c.difficulty} · ${c.topics.join(", ")}`,
     keywords: c.topics,
   })),
-  ...projectCatalog.map<SearchEntry>((p) => ({
-    id: `project-${p.name}`,
-    title: p.name,
-    href: "/projects#catalog",
+  ...projects.map<SearchEntry>((p) => ({
+    id: `project-${p.slug}`,
+    title: p.title,
+    href: `/projects/${p.slug}`,
     kind: "Project",
     feature: "projects",
-    status: "planned",
-    description: `${p.level} project`,
+    status: "available",
+    description: `${p.level} · ${p.summary}`,
+    keywords: p.stack,
   })),
 ];
 

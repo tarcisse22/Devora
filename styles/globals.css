@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+/*
+ * Devora design tokens.
+ * Colors are deliberately restrained: near-black neutrals with a single
+ * lavender/violet accent family. Use the semantic names below in components
+ * rather than raw hex values.
+ */
+@theme {
+  /* Typography */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  /* Surfaces */
+  --color-canvas: #0a0a0f;
+  --color-surface: #111118;
+  --color-surface-raised: #16161f;
+  --color-surface-overlay: #1c1c27;
+
+  /* Lines */
+  --color-line: rgb(255 255 255 / 0.08);
+  --color-line-strong: rgb(255 255 255 / 0.14);
+
+  /* Text */
+  --color-fg: #f4f3f8;
+  --color-fg-muted: #a8a6b8;
+  --color-fg-subtle: #6f6d80;
+
+  /* Accent — lavender to violet */
+  --color-accent-50: #f3f0ff;
+  --color-accent-100: #e6e0ff;
+  --color-accent-200: #cfc4ff;
+  --color-accent-300: #b7a6ff;
+  --color-accent-400: #9d86f7;
+  --color-accent-500: #8466ea;
+  --color-accent-600: #6c4fd1;
+  --color-accent-700: #5539a8;
+
+  /* Signals (used sparingly inside visualizers) */
+  --color-success: #6ee7b7;
+  --color-warning: #fcd34d;
+
+  /* Radii — kept modest on purpose */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  /* Motion */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-pulse-ring: pulse-ring 2.4s var(--ease-out-soft) infinite;
+
+  @keyframes pulse-ring {
+    0% { transform: scale(1); opacity: 0.55; }
+    100% { transform: scale(1.9); opacity: 0; }
+  }
+
+  @keyframes dash {
+    to { stroke-dashoffset: -20; }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: rgb(157 134 247 / 0.35);
+    color: var(--color-fg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent-300);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Lavender gradient used for highlighted headline words. */
+  .text-gradient-accent {
+    background-image: linear-gradient(
+      100deg,
+      var(--color-accent-200) 0%,
+      var(--color-accent-300) 45%,
+      var(--color-accent-400) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Frosted panel — use sparingly. */
+  .surface-glass {
+    background: linear-gradient(
+      180deg,
+      rgb(255 255 255 / 0.05) 0%,
+      rgb(255 255 255 / 0.015) 100%
+    );
+    border: 1px solid var(--color-line);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

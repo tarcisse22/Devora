@@ -59,12 +59,12 @@ export function Playground() {
           id="pg-language"
           value={language}
           onChange={(e) => changeLanguage(e.target.value as PlaygroundLanguage)}
-          className="w-[132px] sm:w-[150px]"
+          className="w-[150px] sm:w-[170px]"
         >
           {languageOrder.map((id) => (
             <option key={id} value={id}>
               {languages[id].label}
-              {languages[id].runtime ? "" : " (can’t run yet)"}
+              {languages[id].runtime ? "" : " · edit only"}
             </option>
           ))}
         </Select>

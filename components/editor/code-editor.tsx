@@ -7,12 +7,12 @@ import { basicSetup } from "codemirror";
 import { indentWithTab } from "@codemirror/commands";
 import { javascript } from "@codemirror/lang-javascript";
 import { python } from "@codemirror/lang-python";
-import { java } from "@codemirror/lang-java";
+import { cpp } from "@codemirror/lang-cpp";
 import { sql } from "@codemirror/lang-sql";
 import { cn } from "@/lib/utils";
 import { devoraEditorTheme } from "./editor-theme";
 
-export type EditorLanguage = "javascript" | "typescript" | "python" | "java" | "sql";
+export type EditorLanguage = "javascript" | "typescript" | "python" | "c" | "cpp" | "sql";
 
 const languageExtension = (lang: EditorLanguage): Extension => {
   switch (lang) {
@@ -20,8 +20,9 @@ const languageExtension = (lang: EditorLanguage): Extension => {
       return javascript({ typescript: true });
     case "python":
       return python();
-    case "java":
-      return java();
+    case "c":
+    case "cpp":
+      return cpp();
     case "sql":
       return sql();
     default:

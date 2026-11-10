@@ -32,6 +32,10 @@ export function useCodeRunner() {
             setStatus("loading");
             setStatusText(text);
           },
+          onStarted: () => {
+            setStatus("running");
+            setStatusText(null);
+          },
         });
         current.current = id;
         const res = await result;

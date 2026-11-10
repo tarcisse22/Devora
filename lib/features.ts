@@ -84,13 +84,13 @@ export const features: Record<FeatureId, Feature> = {
     href: "/playground",
     icon: SquareTerminal,
     status: "available",
-    summary: "Write and run JavaScript, TypeScript and Python in your browser.",
+    summary: "Write and run JavaScript, TypeScript, Python, C++ and C in your browser.",
     description:
-      "A lightweight developer environment: write code, run it in an isolated sandbox and inspect the output. JavaScript, TypeScript and Python run today; Java is clearly marked until it can.",
+      "A lightweight developer environment: write code, run it in an isolated sandbox and inspect the output. JavaScript, TypeScript, Python, C++ and C all run in your browser — C and C++ are compiled with a real Clang toolchain.",
     scope: [
       "Code editor with syntax highlighting and line numbers",
       "Sandboxed JavaScript execution, isolated from the app",
-      "Python via Pyodide; other languages labelled until they run",
+      "Python via Pyodide; C and C++ compiled with Clang to WebAssembly",
       "Run, reset and clear controls with a console panel",
       "Example snippets to start from",
     ],

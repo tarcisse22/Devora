@@ -34,7 +34,7 @@ export default function PlaygroundPage() {
               <li key={id} className="flex flex-col gap-2 p-5 sm:flex-row sm:items-center sm:gap-6 sm:px-6">
                 <p className="w-32 shrink-0 font-mono text-[14px] text-fg">{lang.label}</p>
                 <p className="flex-1 text-[14px] leading-relaxed text-fg-muted">{lang.note}</p>
-                <StatusBadge status={lang.runtime ? "available" : "planned"} className="self-start sm:self-auto" />
+                <StatusBadge status="available" className="self-start sm:self-auto" />
               </li>
             );
           })}

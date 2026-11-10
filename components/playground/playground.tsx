@@ -5,7 +5,6 @@ import { Info, Play, RotateCcw, Square } from "lucide-react";
 import { examples } from "@/lib/execution/examples";
 import { languageOrder, languages, type PlaygroundLanguage } from "@/lib/execution/languages";
 import { stripTypes } from "@/lib/execution/typescript";
-import { cn } from "@/lib/utils";
 import { CodeEditor } from "@/components/editor/code-editor";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
@@ -21,10 +20,9 @@ export function Playground() {
 
   const info = languages[language];
   const example = examples[language].find((e) => e.id === exampleId) ?? examples[language][0];
-  const canRun = info.runtime !== null;
 
   const run = useCallback(async () => {
-    if (!info.runtime || runner.busy) return;
+    if (runner.busy) return;
     let source = code;
     if (language === "typescript") {
       const result = stripTypes(code);
@@ -59,12 +57,11 @@ export function Playground() {
           id="pg-language"
           value={language}
           onChange={(e) => changeLanguage(e.target.value as PlaygroundLanguage)}
-          className="w-[150px] sm:w-[170px]"
+          className="w-[132px] sm:w-[150px]"
         >
           {languageOrder.map((id) => (
             <option key={id} value={id}>
               {languages[id].label}
-              {languages[id].runtime ? "" : " · edit only"}
             </option>
           ))}
         </Select>
@@ -97,13 +94,7 @@ export function Playground() {
               Stop
             </Button>
           ) : (
-            <Button
-              size="sm"
-              onClick={run}
-              disabled={!canRun}
-              title={canRun ? "Run (Ctrl/⌘ + Enter)" : `${info.label} can’t run in the browser yet`}
-              className="min-w-[92px]"
-            >
+            <Button size="sm" onClick={run} title="Run (Ctrl/⌘ + Enter)" className="min-w-[92px]">
               <Play className="size-3.5 fill-current" aria-hidden />
               Run
             </Button>
@@ -128,27 +119,19 @@ export function Playground() {
           status={runner.status}
           statusText={runner.statusText}
           onClear={runner.clear}
-          emptyHint={canRun ? "Run your code to see its output here." : `${info.label} can’t run in the browser yet.`}
           className="h-[300px] lg:h-[540px]"
         />
       </div>
 
       {/* Runtime note */}
-      <div
-        className={cn(
-          "flex items-start gap-2.5 border-t border-line px-4 py-3 text-[12.5px] leading-relaxed",
-          canRun ? "text-fg-muted" : "bg-warning/[0.06] text-warning/90",
-        )}
-      >
+      <div className="flex items-start gap-2.5 border-t border-line px-4 py-3 text-[12.5px] leading-relaxed text-fg-muted">
         <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
         <p className="flex-1">{info.note}</p>
-        {canRun && (
-          <span className="hidden shrink-0 items-center gap-1 text-fg-subtle sm:flex">
-            <Kbd>Ctrl</Kbd>
-            <Kbd>Enter</Kbd>
-            to run
-          </span>
-        )}
+        <span className="hidden shrink-0 items-center gap-1 text-fg-subtle sm:flex">
+          <Kbd>Ctrl</Kbd>
+          <Kbd>Enter</Kbd>
+          to run
+        </span>
       </div>
     </div>
   );

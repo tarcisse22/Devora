@@ -10,11 +10,12 @@
   terminated without freezing the app. Talks to the app only via postMessage.
 
   Protocol (app -> runner):
-    { type: "run",  id, language: "javascript" | "python", code, timeoutMs }
+    { type: "run",  id, language: "javascript" | "python" | "c" | "cpp", code, timeoutMs }
     { type: "stop", id }
   Protocol (runner -> app):
     { type: "ready" }
-    { type: "status", id, text }                 e.g. loading a runtime
+    { type: "status", id, text }                 e.g. loading a runtime / compiling
+    { type: "started", id }                      the program itself has started running
     { type: "output", id, stream: "stdout" | "stderr" | "warn" | "info", text }
     { type: "trace",  id, steps }                code-tracer mode only
     { type: "done",   id, ok, error?, durationMs }
@@ -185,6 +186,112 @@ self.onmessage = async (e) => {
 };
 </script>
 
+<script type="text/plain" id="cc-worker">
+// ----------------------------------------------------------- C / C++ worker
+// Compiles with Clang/LLD (WebAssembly build), then runs the program with a
+// WASI shim. The compiler stays loaded between runs.
+import { runClang } from "__VENDOR__clang/bundle.js";
+import { WASI, File, OpenFile, ConsoleStdout } from "__VENDOR__wasi-shim/index.js";
+
+const send = (msg) => postMessage(msg);
+let compilerReady = false;
+
+function textCollector() {
+  const decoder = new TextDecoder();
+  let text = "";
+  return {
+    push(bytes) { if (bytes) text += decoder.decode(bytes, { stream: true }); },
+    take() { const t = text + decoder.decode(); text = ""; return t; },
+  };
+}
+
+/** Streams program output line by line, and flushes a trailing partial line. */
+function lineStream(id, stream) {
+  const decoder = new TextDecoder();
+  let pending = "";
+  const fd = new ConsoleStdout((bytes) => {
+    pending += decoder.decode(bytes, { stream: true });
+    const lines = pending.split("\n");
+    pending = lines.pop();
+    for (const line of lines) send({ type: "output", id, stream, text: line });
+  });
+  fd.flush = () => {
+    pending += decoder.decode();
+    if (pending) send({ type: "output", id, stream, text: pending });
+    pending = "";
+  };
+  return fd;
+}
+
+self.onmessage = async (e) => {
+  const { id, code, language } = e.data;
+  const cpp = language === "cpp";
+  const file = cpp ? "main.cpp" : "main.c";
+  const args = cpp
+    ? ["clang++", "-std=c++20", "-O1", "-fno-exceptions", "-Wall", file, "-o", "main.wasm"]
+    : ["clang", "-std=c17", "-O1", "-Wall", file, "-o", "main.wasm", "-lm"];
+
+  send({ type: "status", id, text: compilerReady ? "Compiling…" : "Downloading the C/C++ compiler (about 25 MB, first run only)…" });
+  const diagnostics = textCollector();
+  const compileStart = performance.now();
+  let wasm;
+  try {
+    let lastPct = -10;
+    const files = await runClang(args, { [file]: code }, {
+      stderr: (bytes) => diagnostics.push(bytes),
+      fetchProgress: ({ totalLength, doneLength }) => {
+        const pct = totalLength ? Math.floor((doneLength / totalLength) * 100) : 0;
+        if (pct >= lastPct + 10 || pct === 100) {
+          lastPct = pct;
+          send({ type: "status", id, text: pct < 100 ? "Downloading the C/C++ compiler… " + pct + "%" : "Compiling…" });
+        }
+      },
+    });
+    compilerReady = true;
+    wasm = files["main.wasm"];
+  } catch (err) {
+    if (err && typeof err.code === "number") {
+      // Clang ran and reported errors.
+      compilerReady = true;
+      send({ type: "output", id, stream: "stderr", text: diagnostics.take().trim() || "Compilation failed." });
+      send({ type: "done", id, ok: false, error: "Compilation failed — see the errors above." });
+    } else {
+      send({ type: "done", id, ok: false, error: "Could not load the C/C++ compiler: " + (err && err.message ? err.message : err) });
+    }
+    return;
+  }
+
+  const warnings = diagnostics.take().trim();
+  if (warnings) send({ type: "output", id, stream: "warn", text: warnings });
+  send({ type: "output", id, stream: "system", text: "Compiled in " + Math.round(performance.now() - compileStart) + " ms" });
+
+  // Run the program. The runner's timeout starts now, not during compilation.
+  send({ type: "started", id });
+  const stdout = lineStream(id, "stdout");
+  const stderr = lineStream(id, "stderr");
+  const wasi = new WASI(["main"], [], [new OpenFile(new File([])), stdout, stderr]);
+  const started = performance.now();
+  try {
+    const module = await WebAssembly.compile(wasm);
+    const instance = await WebAssembly.instantiate(module, { wasi_snapshot_preview1: wasi.wasiImport });
+    const exitCode = wasi.start(instance);
+    stdout.flush();
+    stderr.flush();
+    if (exitCode !== 0) send({ type: "output", id, stream: "stderr", text: "Process exited with code " + exitCode });
+    send({ type: "done", id, ok: exitCode === 0, durationMs: Math.round(performance.now() - started) });
+  } catch (err) {
+    stdout.flush();
+    stderr.flush();
+    const message = err && err.message ? err.message : String(err);
+    const hint = /unreachable|out of bounds|memory access/i.test(message)
+      ? " — the program crashed (for example an out-of-bounds access, abort() or a failed assertion)."
+      : "";
+    send({ type: "output", id, stream: "stderr", text: "Runtime error: " + message + hint });
+    send({ type: "done", id, ok: false, durationMs: Math.round(performance.now() - started) });
+  }
+};
+</script>
+
 <script>
 (() => {
   const VENDOR = new URL("/vendor/", location.href).href;
@@ -196,8 +303,10 @@ self.onmessage = async (e) => {
   // Chromium refuses blob: module workers in an opaque origin, but allows
   // data: module workers — and Pyodide requires a module worker.
   const pyUrl = "data:text/javascript;charset=utf-8," + encodeURIComponent(source("py-worker"));
+  const ccUrl = "data:text/javascript;charset=utf-8," + encodeURIComponent(source("cc-worker"));
 
   let pyWorker = null;         // kept between runs: loading Python is slow
+  let ccWorker = null;         // kept between runs: loading the compiler is slow
   let current = null;          // { id, worker, language, timer }
 
   function finish(id, msg) {
@@ -214,6 +323,7 @@ self.onmessage = async (e) => {
     clearTimeout(current.timer);
     worker.terminate();
     if (language === "python") pyWorker = null; // reload next time
+    if (language === "c" || language === "cpp") ccWorker = null;
     current = null;
     post({ type: "done", id, ok: false, error: reason });
   }
@@ -228,7 +338,10 @@ self.onmessage = async (e) => {
     worker.onmessage = (e) => {
       const msg = e.data;
       if (!current || msg.id !== current.id) return;
-      if (msg.type === "started") return startTimer(id, timeoutMs);
+      if (msg.type === "started") {
+        startTimer(id, timeoutMs);
+        return post(msg);
+      }
       if (msg.type === "done") return finish(id, msg);
       post(msg);
     };
@@ -251,6 +364,11 @@ self.onmessage = async (e) => {
       current = { id, worker: pyWorker, language, timer: 0 };
       wire(pyWorker, id, language, timeoutMs); // timer starts once Python is loaded
       pyWorker.postMessage({ id, code });
+    } else if (language === "c" || language === "cpp") {
+      if (!ccWorker) ccWorker = new Worker(ccUrl, { type: "module" });
+      current = { id, worker: ccWorker, language, timer: 0 };
+      wire(ccWorker, id, language, timeoutMs); // timer starts after compilation
+      ccWorker.postMessage({ id, code, language });
     } else {
       post({ type: "done", id, ok: false, error: "Unsupported language: " + language });
     }

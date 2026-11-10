@@ -6,7 +6,7 @@
  * shared for the whole session so the Python runtime only loads once.
  */
 
-export type RunLanguage = "javascript" | "python";
+export type RunLanguage = "javascript" | "python" | "c" | "cpp";
 export type OutputStream = "stdout" | "stderr" | "warn" | "info" | "system";
 
 export type TraceStep = {
@@ -32,6 +32,8 @@ type RunOptions = {
   mode?: "run" | "trace";
   onOutput?: (stream: OutputStream, text: string) => void;
   onStatus?: (text: string) => void;
+  /** The program itself started (after any runtime load or compilation). */
+  onStarted?: () => void;
 };
 
 type Pending = RunOptions & { resolve: (r: RunResult) => void; steps?: TraceStep[] };
@@ -73,6 +75,7 @@ class SandboxClient {
         if (!job) return;
         if (msg.type === "output") job.onOutput?.(msg.stream, String(msg.text));
         else if (msg.type === "status") job.onStatus?.(String(msg.text));
+        else if (msg.type === "started") job.onStarted?.();
         else if (msg.type === "trace") job.steps = msg.steps;
         else if (msg.type === "done") {
           this.pending.delete(msg.id);

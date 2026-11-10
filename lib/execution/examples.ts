@@ -160,15 +160,205 @@ print("popped:", s.pop(), s.pop())
 `,
     },
   ],
-  java: [
+  cpp: [
     {
       id: "hello",
       title: "Hello, Devora",
-      code: `public class Main {
-    public static void main(String[] args) {
-        String name = "Devora";
-        System.out.println("Hello, " + name + "!");
+      code: `#include <iostream>
+#include <string>
+
+int main() {
+    std::string name = "Devora";
+    std::cout << "Hello, " << name << "!" << std::endl;
+
+    for (int i = 1; i <= 5; i++) std::cout << i * i << ' ';
+    std::cout << '\\n';
+}
+`,
+    },
+    {
+      id: "two-sum",
+      title: "Two Sum (hash map)",
+      code: `#include <iostream>
+#include <unordered_map>
+#include <vector>
+using namespace std;
+
+// Classic interview problem: indices of two numbers that add up to target.
+// One pass with a hash map: O(n) time, O(n) space.
+vector<int> twoSum(const vector<int>& nums, int target) {
+    unordered_map<int, int> seen; // value -> index
+    for (int i = 0; i < (int)nums.size(); i++) {
+        int need = target - nums[i];
+        if (seen.count(need)) return {seen[need], i};
+        seen[nums[i]] = i;
     }
+    return {};
+}
+
+int main() {
+    vector<int> nums = {2, 7, 11, 15};
+    vector<int> ans = twoSum(nums, 9);
+    cout << "[" << ans[0] << ", " << ans[1] << "]" << endl;
+}
+`,
+    },
+    {
+      id: "stl",
+      title: "STL: sort, map, priority_queue",
+      code: `#include <algorithm>
+#include <iostream>
+#include <map>
+#include <queue>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<int> v = {5, 2, 9, 1, 7};
+    sort(v.begin(), v.end());
+    cout << "sorted: ";
+    for (int x : v) cout << x << ' ';
+    cout << '\\n';
+
+    map<string, int> freq;
+    for (string w : {"tree", "graph", "tree", "heap", "tree"}) freq[w]++;
+    for (auto& [word, count] : freq) cout << word << " x" << count << '\\n';
+
+    priority_queue<int, vector<int>, greater<int>> minHeap(v.begin(), v.end());
+    cout << "smallest: " << minHeap.top() << endl;
+}
+`,
+    },
+    {
+      id: "bfs-grid",
+      title: "BFS shortest path on a grid",
+      code: `#include <iostream>
+#include <queue>
+#include <string>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<string> grid = {
+        "S.#.....",
+        ".##..#..",
+        "....#..E",
+    };
+    int rows = grid.size(), cols = grid[0].size();
+    vector<vector<int>> dist(rows, vector<int>(cols, -1));
+    queue<pair<int, int>> q;
+    q.push({0, 0});
+    dist[0][0] = 0;
+    int dr[] = {1, -1, 0, 0}, dc[] = {0, 0, 1, -1};
+
+    while (!q.empty()) {
+        auto [r, c] = q.front();
+        q.pop();
+        if (grid[r][c] == 'E') {
+            cout << "Shortest path length: " << dist[r][c] << endl;
+            return 0;
+        }
+        for (int k = 0; k < 4; k++) {
+            int nr = r + dr[k], nc = c + dc[k];
+            if (nr < 0 || nc < 0 || nr >= rows || nc >= cols) continue;
+            if (grid[nr][nc] == '#' || dist[nr][nc] != -1) continue;
+            dist[nr][nc] = dist[r][c] + 1;
+            q.push({nr, nc});
+        }
+    }
+    cout << "No path" << endl;
+}
+`,
+    },
+  ],
+  c: [
+    {
+      id: "hello",
+      title: "Hello, Devora",
+      code: `#include <stdio.h>
+
+int main(void) {
+    const char *name = "Devora";
+    printf("Hello, %s!\\n", name);
+
+    for (int i = 1; i <= 5; i++) printf("%d ", i * i);
+    printf("\\n");
+    return 0;
+}
+`,
+    },
+    {
+      id: "pointers",
+      title: "Pointers & arrays",
+      code: `#include <stdio.h>
+
+void swap(int *a, int *b) {
+    int tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
+int main(void) {
+    int x = 3, y = 8;
+    swap(&x, &y);
+    printf("after swap: x=%d y=%d\\n", x, y);
+
+    int arr[] = {10, 20, 30, 40};
+    int *p = arr;
+    for (int i = 0; i < 4; i++) {
+        printf("arr[%d] = %d at offset %td\\n", i, *(p + i), (p + i) - arr);
+    }
+    return 0;
+}
+`,
+    },
+    {
+      id: "linked-list",
+      title: "Linked list with malloc",
+      code: `#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node {
+    int value;
+    struct Node *next;
+} Node;
+
+Node *push_front(Node *head, int value) {
+    Node *node = malloc(sizeof(Node));
+    node->value = value;
+    node->next = head;
+    return node;
+}
+
+Node *reverse(Node *head) {
+    Node *prev = NULL;
+    while (head) {
+        Node *next = head->next;
+        head->next = prev;
+        prev = head;
+        head = next;
+    }
+    return prev;
+}
+
+void print_list(const Node *n) {
+    for (; n; n = n->next) printf("%d -> ", n->value);
+    printf("NULL\\n");
+}
+
+int main(void) {
+    Node *list = NULL;
+    for (int i = 1; i <= 5; i++) list = push_front(list, i);
+    print_list(list);
+    list = reverse(list);
+    print_list(list);
+
+    while (list) {
+        Node *next = list->next;
+        free(list);
+        list = next;
+    }
+    return 0;
 }
 `,
     },

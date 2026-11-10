@@ -12,10 +12,23 @@ const out = join(root, "public", "vendor");
 const files = {
   pyodide: ["pyodide.mjs", "pyodide.asm.mjs", "pyodide.asm.wasm", "python_stdlib.zip", "pyodide-lock.json"],
   "sql.js": ["dist/worker.sql-wasm.js", "dist/sql-wasm.wasm"],
+  // Clang/LLD compiled to WebAssembly, for C and C++ (~25 MB compressed).
+  "@yowasp/clang": [
+    "gen/bundle.js",
+    "gen/llvm.core.wasm",
+    "gen/llvm.core2.wasm",
+    "gen/llvm.core3.wasm",
+    "gen/llvm.core4.wasm",
+    "gen/llvm-resources.tar",
+  ],
+  // WASI implementation used to run the compiled C/C++ programs.
+  "@bjorn3/browser_wasi_shim": ["dist/index.js", "dist/wasi.js", "dist/wasi_defs.js", "dist/fd.js", "dist/fs_mem.js", "dist/fs_opfs.js", "dist/debug.js", "dist/strace.js"],
 };
 
+const targetDir = { "sql.js": "sql", "@yowasp/clang": "clang", "@bjorn3/browser_wasi_shim": "wasi-shim" };
+
 for (const [pkg, list] of Object.entries(files)) {
-  const target = join(out, pkg === "sql.js" ? "sql" : pkg);
+  const target = join(out, targetDir[pkg] ?? pkg);
   mkdirSync(target, { recursive: true });
   for (const file of list) {
     const src = join(nm, pkg, file);

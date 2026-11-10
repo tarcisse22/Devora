@@ -21,11 +21,10 @@ Other scripts: `npm run build`, `npm run lint`, `npm run typecheck`.
 app/                  Routes: / learn practice playground visualize code-tracer
                       sql-lab projects community get-started sign-in
 components/
-  home/               Homepage sections (hero, walkthrough, platform overview)
+  home/               Homepage sections (hero, live algorithm demo, platform overview)
   layout/             Page shell, headers, footer, planned-scope panel
   navigation/         Navbar, nav links, mobile menu, search button
   search/             Search provider (shortcuts) and command palette
-  video/              Walkthrough video card, poster art and player dialog
   visualizers/        Algorithm visualizer building blocks
   ui/                 Reusable primitives (Button, Dialog, StatusBadge, Kbd, …)
 lib/
@@ -41,8 +40,6 @@ styles/globals.css    Design tokens (Tailwind @theme) and base styles
 - Feature status (`Available` / `Preview` / `In development`) comes only from `lib/features.ts`.
   Flip a status there when a feature ships and every page, search result and badge follows.
 - No invented metrics, users, testimonials or ratings anywhere.
-- The walkthrough video is not recorded yet. Set `walkthroughVideo.src` in `lib/site.ts`
-  once a file exists in `public/videos/`; until then the player says so plainly.
 - The hero visualizer replays a real Dijkstra trace from `lib/algorithms/dijkstra.ts`.
 
 ## Shortcuts

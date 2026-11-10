@@ -1,12 +1,12 @@
 import { Hero } from "@/components/home/hero";
-import { WalkthroughSection } from "@/components/home/walkthrough-section";
+import { LiveDemoSection } from "@/components/home/live-demo-section";
 import { PlatformOverview } from "@/components/home/platform-overview";
 
 export default function HomePage() {
   return (
     <>
       <Hero />
-      <WalkthroughSection />
+      <LiveDemoSection />
       <PlatformOverview />
     </>
   );

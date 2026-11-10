@@ -6,7 +6,8 @@ import { algorithmBySlug } from "@/lib/algorithms/catalog";
 import { bubbleSort, insertionSort, mergeSort, quickSort, selectionSort, type SortFrame } from "@/lib/algorithms/sorting";
 import { binarySearch, linearSearch, type SearchFrame } from "@/lib/algorithms/searching";
 import { bfs, dfs, dijkstra, randomGraph, type GraphFrame } from "@/lib/algorithms/graphs";
-import { createRng, randomArray, randomSeed } from "@/lib/algorithms/random";
+import { randomArray, randomSeed } from "@/lib/algorithms/random";
+import { pickTarget, sortedUnique } from "@/lib/algorithms/inputs";
 import type { WeightedGraph } from "@/lib/algorithms/dijkstra";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,23 +30,6 @@ const sorters = {
 const graphAlgos = { bfs, dfs, dijkstra } as const;
 
 const sizeRange = { sorting: [5, 40, 16], searching: [5, 24, 12], graph: [5, 12, 8] } as const;
-
-/** Distinct sorted values for binary search. */
-function sortedUnique(n: number, seed: number) {
-  const rng = createRng(seed);
-  const values = new Set<number>();
-  while (values.size < n) values.add(rng.int(1, 99));
-  return [...values].sort((a, b) => a - b);
-}
-
-/** Pick a target: usually present in the array, sometimes absent. */
-function pickTarget(array: number[], seed: number) {
-  const rng = createRng(seed ^ 0x5bd1e995);
-  if (rng.next() < 0.75) return rng.pick(array);
-  let t = rng.int(1, 99);
-  while (array.includes(t)) t = rng.int(1, 99);
-  return t;
-}
 
 type Visual =
   | { kind: "sorting"; frames: SortFrame[] }

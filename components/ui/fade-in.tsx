@@ -9,16 +9,20 @@ type Props = {
   /** Vertical offset in px to rise from. */
   y?: number;
   className?: string;
+  /** Animate when scrolled into view instead of on mount. */
+  inView?: boolean;
 };
 
 /** Single, restrained entrance animation used across marketing sections. */
-export function FadeIn({ children, delay = 0, y = 12, className }: Props) {
+export function FadeIn({ children, delay = 0, y = 12, className, inView = false }: Props) {
   const reduce = useReducedMotion();
   return (
     <motion.div
       className={className}
       initial={reduce ? false : { opacity: 0, y }}
-      animate={{ opacity: 1, y: 0 }}
+      {...(inView
+        ? { whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: "-60px" } }
+        : { animate: { opacity: 1, y: 0 } })}
       transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}

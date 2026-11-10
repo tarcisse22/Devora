@@ -12,7 +12,7 @@ export function HeroAtmosphere() {
 
       {/* Flowing ridges */}
       <svg
-        className="absolute inset-x-0 bottom-0 h-[44%] w-full min-w-[1100px] left-1/2 -translate-x-1/2"
+        className="absolute inset-x-0 bottom-0 h-[52%] w-full min-w-[1100px] left-1/2 -translate-x-1/2"
         viewBox="0 0 1600 520"
         preserveAspectRatio="xMidYMax slice"
         fill="none"

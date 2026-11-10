@@ -15,7 +15,7 @@ export function Hero() {
     <section className="relative isolate overflow-hidden pt-[72px] lg:pt-[84px]">
       <HeroAtmosphere />
 
-      <Container className="relative grid items-center gap-14 pt-12 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.04fr)] lg:gap-x-10 lg:gap-y-16 lg:pt-16 xl:gap-x-14">
+      <Container className="relative grid items-center gap-14 pt-12 sm:pt-16 lg:pt-16 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.04fr)] xl:gap-x-12 xl:gap-y-16 min-[1440px]:gap-x-14">
         {/* Copy */}
         <div className="max-w-[700px]">
           <FadeIn>
@@ -61,15 +61,15 @@ export function Hero() {
         </div>
 
         {/* Visualizer preview — spans both rows on desktop, sits after the CTAs on mobile */}
-        <FadeIn delay={0.2} y={20} className="relative [perspective:2000px] lg:col-start-2 lg:row-span-2 lg:row-start-1 xl:-mr-6">
-          <div className="transition-transform duration-700 ease-[var(--ease-out-soft)] xl:[transform:rotateY(-10deg)_rotateX(5deg)] xl:hover:[transform:rotateY(-4deg)_rotateX(2deg)]">
-            <div id="visualize" className="scroll-mt-28">
+        <FadeIn delay={0.2} y={20} className="relative [perspective:2000px] xl:col-start-2 xl:row-span-2 xl:row-start-1 min-[1440px]:-mr-6">
+          <div className="transition-transform duration-700 ease-[var(--ease-out-soft)] min-[1440px]:[transform:rotateY(-10deg)_rotateX(5deg)] min-[1440px]:hover:[transform:rotateY(-4deg)_rotateX(2deg)]">
+            <div id="visualize">
               <DijkstraPreview />
             </div>
           </div>
         </FadeIn>
 
-        <FadeIn delay={0.32} className="lg:col-start-1 lg:row-start-2">
+        <FadeIn delay={0.32} className="xl:col-start-1 xl:row-start-2">
           <FeatureList className="max-w-[700px]" />
         </FadeIn>
       </Container>

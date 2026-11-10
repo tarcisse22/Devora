@@ -65,6 +65,14 @@
   html {
     color-scheme: dark;
     -webkit-text-size-adjust: 100%;
+    /* Keep anchored sections clear of the fixed navbar. */
+    scroll-padding-top: 96px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
 
   body {

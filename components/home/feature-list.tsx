@@ -10,7 +10,7 @@ export function FeatureList({ className }: { className?: string }) {
           key={id}
           id={id}
           className={cn(
-            "group scroll-mt-28 sm:pr-6",
+            "group sm:pr-6",
             i > 0 && "sm:border-l sm:border-line sm:pl-6",
           )}
         >

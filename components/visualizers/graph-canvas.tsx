@@ -143,10 +143,10 @@ export function GraphCanvas({ graph, step, source, className }: Props) {
               cx={node.x}
               cy={node.y}
               r={NODE_R}
-              fill={emphasized ? "#2a2150" : `url(#${id}-node)`}
+              fill={emphasized ? "#2a2150" : isVisited ? "#1e1934" : `url(#${id}-node)`}
               className={cn(
-                "transition-[stroke] duration-500",
-                emphasized ? "stroke-accent-300" : isVisited ? "stroke-accent-400/70" : "stroke-white/25",
+                "transition-[stroke,fill] duration-500",
+                emphasized ? "stroke-accent-300" : isVisited ? "stroke-accent-300/70" : "stroke-white/25",
               )}
               strokeWidth={emphasized ? 2 : 1.25}
             />

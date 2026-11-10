@@ -27,12 +27,22 @@ export function DijkstraPreview({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "relative rounded-[22px] border border-white/[0.12] bg-surface/60 p-2 shadow-[0_40px_120px_-40px_rgb(108_79_209/0.55),0_0_0_1px_rgb(255_255_255/0.03)_inset] backdrop-blur-xl",
+        "relative rounded-[22px] outline-none focus-visible:ring-2 focus-visible:ring-accent-300/60 border border-white/[0.12] bg-surface/60 p-2 shadow-[0_40px_120px_-40px_rgb(108_79_209/0.55),0_0_0_1px_rgb(255_255_255/0.03)_inset] backdrop-blur-xl",
         className,
       )}
+      role="group"
+      aria-label="Dijkstra's algorithm visualizer"
+      aria-keyshortcuts="ArrowLeft ArrowRight"
+      tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === "ArrowRight") next();
-        if (e.key === "ArrowLeft") prev();
+        if (e.key === "ArrowRight") {
+          e.preventDefault();
+          next();
+        }
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          prev();
+        }
       }}
     >
       {/* Top edge highlight */}
@@ -51,7 +61,7 @@ export function DijkstraPreview({ className }: { className?: string }) {
         <Plus className="ml-1 size-4 text-fg-subtle" aria-hidden />
       </div>
 
-      <div className="grid overflow-hidden rounded-[16px] border border-line bg-canvas/80 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <div className="grid overflow-hidden rounded-[16px] border border-line bg-canvas/80 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         {/* Graph area */}
         <div className="relative flex flex-col p-4 sm:p-5">
           <div
@@ -123,6 +133,19 @@ function Legend() {
           {item.label}
         </li>
       ))}
+      <li className="ml-auto hidden items-center gap-1 lg:flex">
+        <Kbd>←</Kbd>
+        <Kbd>→</Kbd>
+        <span className="ml-1">to step</span>
+      </li>
     </ul>
+  );
+}
+
+function Kbd({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded border border-line-strong bg-white/[0.04] px-1 font-sans text-[10px] text-fg-muted">
+      {children}
+    </kbd>
   );
 }

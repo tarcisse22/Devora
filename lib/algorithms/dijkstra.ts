@@ -76,7 +76,7 @@ export function traceDijkstra(graph: WeightedGraph, source: NodeId): DijkstraSte
       distances: { ...distances },
       previous: { ...previous },
       relaxations: [],
-      code: [`priorityQueue.add(${source}, 0);`, `dist[${source}] = 0;`, `visited = {};`],
+      code: [`pq.add(${source}, 0);`, `dist[${source}] = 0;`, `visited = {};`],
     },
   ];
 
@@ -116,7 +116,7 @@ export function traceDijkstra(graph: WeightedGraph, source: NodeId): DijkstraSte
       previous: { ...previous },
       relaxations,
       code: [
-        `u = priorityQueue.poll(); // ${u}`,
+        `u = pq.poll(); // ${u}`,
         ...relaxations.map((r) =>
           r.improved
             ? `dist[${r.to}] = ${r.candidate}; // via ${r.from}`

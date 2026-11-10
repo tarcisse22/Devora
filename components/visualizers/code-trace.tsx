@@ -9,7 +9,7 @@ function Line({ text }: { text: string }) {
   const parts = code.split(/(\b\d+\b|[A-Z](?=[,)\];])|\.\w+(?=\())/g);
 
   return (
-    <div className="whitespace-pre">
+    <div className="whitespace-pre-wrap break-words">
       {parts.map((part, i) => {
         if (!part) return null;
         if (/^\d+$/.test(part)) return <span key={i} className="text-accent-200">{part}</span>;
@@ -32,7 +32,7 @@ export function CodeTrace({ lines, stepKey }: { lines: string[]; stepKey: number
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -4 }}
           transition={{ duration: 0.18 }}
-          className="min-h-[84px] overflow-x-auto font-mono text-[12px] leading-[1.75] text-fg/85"
+          className="min-h-[84px] font-mono text-[12px] leading-[1.75] text-fg/85"
         >
           <code>
             {lines.map((line, i) => (

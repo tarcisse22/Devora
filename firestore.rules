@@ -1,0 +1,160 @@
+rules_version = '2';
+
+// Devora — Firestore security rules.
+//
+// Data model
+//   users/{uid}                     public profile (username, displayName, bio)
+//   usernames/{username}            { uid } — makes usernames unique
+//   progress/{uid}                  private learning progress
+//   threads/{threadId}              community thread
+//   threads/{threadId}/replies/{id} replies
+//   threads/{threadId}/likes/{uid}  one like per user
+//
+// Anything not matched below is denied.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------- helpers
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isUser(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function text(v, min, max) {
+      return v is string && v.size() >= min && v.size() <= max;
+    }
+    function validUsername(name) {
+      return name is string && name.matches('^[a-z0-9_]{3,20}$');
+    }
+    function userPath(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+    function usernameOf(uid) {
+      return get(userPath(uid)).data.username;
+    }
+    // Anti-spam: the same batch must set users/{uid}.lastPostAt to the request
+    // time, and the previous post must be at least `seconds` old.
+    function cooledDown(uid, seconds) {
+      return getAfter(userPath(uid)).data.lastPostAt == request.time
+        && get(userPath(uid)).data.lastPostAt < request.time - duration.value(seconds, 's');
+    }
+    function validLink(data) {
+      return !('link' in data)
+        || (data.link is string && data.link.size() <= 300 && data.link.matches('^https?://[^\\s]+$'));
+    }
+
+    // --------------------------------------------------------------- profiles
+    match /users/{uid} {
+      allow read: if true;
+
+      allow create: if isUser(uid)
+        && request.resource.data.keys().hasOnly(['username', 'displayName', 'bio', 'createdAt', 'lastPostAt'])
+        && request.resource.data.keys().hasAll(['username', 'displayName', 'bio', 'createdAt', 'lastPostAt'])
+        && validUsername(request.resource.data.username)
+        && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.uid == uid
+        && text(request.resource.data.displayName, 1, 40)
+        && text(request.resource.data.bio, 0, 280)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.lastPostAt == timestamp.value(0);
+
+      // Usernames are permanent. lastPostAt only moves forward to "now",
+      // and at most every 10 seconds (it is the rate-limit clock).
+      allow update: if isUser(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'bio', 'lastPostAt'])
+        && text(request.resource.data.displayName, 1, 40)
+        && text(request.resource.data.bio, 0, 280)
+        && (request.resource.data.lastPostAt == resource.data.lastPostAt
+            || (request.resource.data.lastPostAt == request.time
+                && resource.data.lastPostAt < request.time - duration.value(10, 's')));
+
+      allow delete: if isUser(uid);
+    }
+
+    // Username registry: a document id can only be created once, so two
+    // people can never hold the same username.
+    match /usernames/{name} {
+      allow read: if true;
+      allow create: if signedIn()
+        && validUsername(name)
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == request.auth.uid
+        && getAfter(userPath(request.auth.uid)).data.username == name;
+      allow update: if false;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // --------------------------------------------------------------- progress
+    match /progress/{uid} {
+      allow read, delete: if isUser(uid);
+      allow create, update: if isUser(uid)
+        && request.resource.data.keys().hasOnly(['lessons', 'challenges', 'projectItems', 'updatedAt'])
+        && request.resource.data.lessons is list && request.resource.data.lessons.size() <= 500
+        && request.resource.data.challenges is list && request.resource.data.challenges.size() <= 500
+        && request.resource.data.projectItems is list && request.resource.data.projectItems.size() <= 1000
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // -------------------------------------------------------------- community
+    match /threads/{threadId} {
+      allow read: if true;
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['authorId', 'authorUsername', 'category', 'title', 'body', 'link', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['authorId', 'authorUsername', 'category', 'title', 'body', 'createdAt', 'updatedAt'])
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.authorUsername == usernameOf(request.auth.uid)
+        && request.resource.data.category in ['question', 'discussion', 'project', 'resource']
+        && text(request.resource.data.title, 5, 150)
+        && text(request.resource.data.body, 1, 10000)
+        && validLink(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && cooledDown(request.auth.uid, 30);
+
+      allow update: if isUser(resource.data.authorId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'body', 'link', 'updatedAt'])
+        && text(request.resource.data.title, 5, 150)
+        && text(request.resource.data.body, 1, 10000)
+        && validLink(request.resource.data)
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if isUser(resource.data.authorId);
+
+      match /replies/{replyId} {
+        allow read: if true;
+
+        allow create: if signedIn()
+          && exists(/databases/$(database)/documents/threads/$(threadId))
+          && request.resource.data.keys().hasOnly(['authorId', 'authorUsername', 'body', 'createdAt', 'updatedAt'])
+          && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.authorUsername == usernameOf(request.auth.uid)
+          && text(request.resource.data.body, 1, 5000)
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time
+          && cooledDown(request.auth.uid, 10);
+
+        allow update: if isUser(resource.data.authorId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['body', 'updatedAt'])
+          && text(request.resource.data.body, 1, 5000)
+          && request.resource.data.updatedAt == request.time;
+
+        // Authors can delete their replies; thread authors can remove replies
+        // in their own thread (and must, to delete the whole thread cleanly).
+        allow delete: if isUser(resource.data.authorId)
+          || isUser(get(/databases/$(database)/documents/threads/$(threadId)).data.authorId);
+      }
+
+      match /likes/{uid} {
+        allow read: if true;
+        allow create: if isUser(uid)
+          && exists(/databases/$(database)/documents/threads/$(threadId))
+          && request.resource.data.keys().hasOnly(['createdAt'])
+          && request.resource.data.createdAt == request.time;
+        allow delete: if isUser(uid)
+          || isUser(get(/databases/$(database)/documents/threads/$(threadId)).data.authorId);
+      }
+    }
+  }
+}

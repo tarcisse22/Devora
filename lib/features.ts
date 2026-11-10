@@ -133,13 +133,13 @@ export const features: Record<FeatureId, Feature> = {
     name: "SQL Lab",
     href: "/sql-lab",
     icon: Database,
-    status: "planned",
+    status: "available",
     summary: "Run real SQL against sample datasets in your browser.",
     description:
-      "An in-browser SQL engine with sample datasets, so every query you write runs against real tables.",
+      "A real SQLite database running in your browser with related sample tables — students, courses, enrollments, employees and departments — so every query you write runs against real data.",
     scope: [
       "SQL editor with results table",
-      "Sample tables: students, courses, employees, departments",
+      "Sample tables: students, courses, enrollments, employees, departments",
       "Schema viewer and example queries",
       "SELECT, WHERE, ORDER BY, GROUP BY, JOIN, INSERT, UPDATE, DELETE",
       "One-click database reset",

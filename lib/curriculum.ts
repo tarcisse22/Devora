@@ -24,7 +24,3 @@ export const projectCatalog = [
   { name: "Authentication System", level: "Advanced" },
   { name: "Full-Stack Application", level: "Advanced" },
 ] as const;
-
-export const playgroundLanguages = ["JavaScript", "TypeScript", "Python", "Java"] as const;
-
-export const sqlDatasets = ["Students", "Courses", "Employees", "Departments"] as const;
